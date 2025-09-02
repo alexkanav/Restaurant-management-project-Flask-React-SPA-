@@ -23,6 +23,7 @@ export default function Contacts() {
       </div>
 
       <div className="main-block-name">Графік роботи:</div>
+
       <div
         className="element-animation"
         ref={(el) => (elementRef.current[1] = el)}
@@ -30,16 +31,19 @@ export default function Contacts() {
         <div className="work">
           Ми раді Вас бачити:
           <div className="block-text">
+
             <div className="left-column">
               {weekdays.map((day, index) => (
                 <div key={index}>{day}</div>
               ))}
             </div>
+
             <div className="right-column">
               {openingHours.map((hour, index) => (
                 <div key={index}>{hour}</div>
               ))}
             </div>
+
           </div>
         </div>
       </div>

@@ -1,14 +1,12 @@
 import os
-from time import time
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
 
-from .models import User, Dish, Order, Comment
-from app.blueprints.admin.models import Price, Category
+from .models import User, Dish, Order, Comment, Category
 from app.extensions import cache, logger, safe_commit, limiter
-from config import table_numbers, addOnMenu, category_icons
 
 
-users_bp = Blueprint('users', __name__, template_folder='templates')
+users_bp = Blueprint('users', __name__)
 
 # Serve React build
 @users_bp.route('/', defaults={'path': ''})
@@ -22,110 +20,147 @@ def serve(path):
         return send_from_directory(react_dir, 'index.html')
 
 
-@users_bp.route('/api/comments', methods=['GET', 'POST'])
+@users_bp.route('/api/users/me', methods=['GET'])
+@jwt_required()
+def get_current_user():
+    claims = get_jwt()
+    current_user_id = claims.get("id")
+    return jsonify(id=current_user_id), 200
+
+
+@users_bp.route('/api/users', methods=['POST'])
+@limiter.limit("1 per minute")
+def create_user():
+    try:
+        user_id = User.create_new_user()
+
+        # Create JWT with user identity
+        access_token = create_access_token(
+            identity=str(user_id),
+            additional_claims={
+                "role": "client",
+                "id": user_id
+            }
+        )
+
+        response = jsonify(user_id=user_id)
+        set_access_cookies(response, access_token)
+        return response, 200
+
+    except Exception:
+        logger.exception("User not created")
+        return jsonify(message="Помилка на сервері"), 400
+
+
+@users_bp.route('/api/get-comments', methods=['GET'])
+@cache.cached(timeout=3600, key_prefix='get_comments')
+def get_comments():
+    try:
+        data = Comment.query.order_by(Comment.id.desc()).limit(10).all()[::-1]
+        comments = [
+            {
+                "id": c.id,
+                "name": c.user_name,
+                "time": c.comment_date_time,
+                "message": c.comment_text
+            } for c in data
+        ]
+
+    except Exception:
+        logger.exception("Comment query failed")
+        comments = []
+
+    return jsonify(comments), 200
+
+
+@users_bp.route('/api/send-comment', methods=['POST'])
+@jwt_required()
 @limiter.limit("5 per minute")
-def handle_comments():
-    if request.method == 'GET':
-        try:
-            data = Comment.query.order_by(Comment.comment_date_time.desc()).limit(10).all()
-            comments = [
-                {
-                    "id": c.id,
-                    "name": c.user_name,
-                    "time": c.comment_date_time,
-                    "message": c.comment_text
-                } for c in data
-            ]
+def send_comment():
+    try:
+        claims = get_jwt()
+        user_id = claims.get("id")
 
-        except Exception:
-            logger.exception("Comment query failed")
-            comments = []
-
-        return jsonify(comments), 200
-
-    if request.method == 'POST':
         data = request.get_json()
-        comment = {
-            'name': data.get('name'),
-            'message': data.get('message')
-        }
+        if not data:
+            raise ValueError("No comment data received")
+        name = data.get('name')
+        message = data.get('message')
+        Comment.add_comment(user_id, name, message)
 
-        user_id = request.cookies.get('user_id')
-        if not user_id or not user_id.isdigit():
-            return jsonify({'message': 'Ви не зареєстровані, можливо, у вашому браузері блокуються cookie'})
+        # Invalidate the cache for get_comments
+        cache.delete('get_comments')
 
-        user_id = int(user_id)
-        Comment.add_comment(user_id, comment['name'], comment['message'])
-        return jsonify({'message': 'Дякуємо за відгук!'}), 201
+        return jsonify(message="Ваш коментар надіслано на модерацію"), 201
 
-
-@users_bp.route('/api/user-id', methods=['POST'])
-def new_user():
-    new_user_id = str(User.create_new_user())
-
-    return jsonify({'userId': new_user_id})
+    except Exception:
+        logger.exception("Comment not processed")
+        return jsonify(message="Помилка, коментар не надіслано."), 400
 
 
-@users_bp.route('/api/cards', methods=['GET'])
+@users_bp.route('/api/menu', methods=['GET'])
 @cache.cached(timeout=3600)
-def get_cards():
-    price = Price.query.first().price
-    menu = {i.category: i.names for i in Category.query}
-    dish_attributes = {
-        i.dish_code: {
-            'name': i.name_ua, 'description': i.description, 'image_link': i.image_link, 'likes': i.likes
-        } for i in Dish.query
-    }
-    categories_number = len(menu)
-    context = {
-        'table_numbers': table_numbers,
-        'addOnMenu': addOnMenu,
-        'category_icons': category_icons,
-        'menu': menu,
-        'dish_attributes': dish_attributes,
-        'price': price,
-        'categories_number': categories_number
-    }
-    return jsonify(context)
+def get_menu():
+    popular = []
+    recommended = []
+    dishes = {}
+    for dish in Dish.query.all():
+        dishes[dish.code] = {
+            "name": dish.name_ua,
+            "description": dish.description,
+            "price": dish.price,
+            "is_popular": dish.is_popular,
+            "is_recommended": dish.is_recommended,
+            "image_link": dish.image_link,
+            "likes": dish.likes,
+            "extras": {dish_extra.name_ua: dish_extra.price for dish_extra in dish.extras}
+        }
+        if dish.is_popular:
+            popular.append(dish.code)
+        if dish.is_recommended:
+            recommended.append(dish.code)
+
+    categories = [
+                {category.name: [dish.code for dish in category.dishes]}
+                for category in Category.query.all()
+            ]
+    categories.append({"Популярне": popular})
+    categories.append({"Рекомендуємо": recommended})
+
+    menu = {"categories": categories, "dishes": dishes}
+
+    return jsonify(menu=menu), 200
 
 
 @users_bp.route('/api/order', methods=['POST'])
-def get_order_from_client():
+@jwt_required()
+def place_order():
     try:
+        claims = get_jwt()
+        user_id = claims.get("id")
+
         order = request.get_json()
         if not order:
             raise ValueError("No order data received")
 
-        user_id_cookie = request.cookies.get('user_id')
-        try:
-            user_id = int(user_id_cookie)
-        except (TypeError, ValueError):
-            logger.warning("Invalid or missing user_id cookie")
-            user_id = 0
-
         order_sum = int(order.pop('totalCost', 0))
         table_num = order.pop('table', 0)
-        order_id = f"{int(time())}-{user_id}"
 
-        Order.add_order(user_id, order_id, table_num, order_sum, order)
+        new_order_id = Order.add_order(user_id, table_num, order_sum, order)
 
-        User.update(user_id, order_sum)
-
-        return jsonify({"processed": "Ваше замовлення прийнято", "id": order_id}), 201
+        return jsonify({"message": "Ваше замовлення прийнято", "id": new_order_id}), 201
 
     except Exception:
         logger.exception("Order not processed")
-        return jsonify({"processed": False}), 400
+        return jsonify(message="Помилка на сервері"), 400
 
 
-@users_bp.route('/api/add-like', methods=['POST'])
-def post_order_like():
+@users_bp.route('/api/dishes/<int:dish_id>/like', methods=['POST'])
+@jwt_required()
+@limiter.limit("5 per minute")
+def like_dish(dish_id):
     try:
-        data = request.get_json()
-        like_id = data.get("dishId")
-        if not like_id:
-            raise ValueError("Missing like_id in request")
-        Dish.query.filter_by(dish_code=like_id).update({Dish.likes: Dish.likes + 1})
+        Dish.query.filter_by(code=dish_id).update({Dish.likes: Dish.likes + 1})
 
         if not safe_commit():
             logger.error("Could not update dish views.")

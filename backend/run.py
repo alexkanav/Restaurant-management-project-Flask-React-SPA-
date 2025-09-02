@@ -1,5 +1,6 @@
 from app import create_app
 from flask_cors import CORS
+
 from config import origin
 from app.extensions import db
 

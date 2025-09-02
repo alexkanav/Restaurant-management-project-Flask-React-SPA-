@@ -1,46 +1,67 @@
-import React, { useState } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductViewer from './ProductViewer';
 import OrderSummary from './OrderSummary';
 import TableSelection from './TableSelection';
 import { useOrder } from '../context/OrderContext';
+import { VIEWS } from '../constants/views';
+import heart from '../assets/images/heart.svg';
+import star from '../assets/images/star.svg';
+import { sendToServer } from '../utils/api';
 
-
-const VIEWS = {
-  PRODUCT: 'ProductViewer',
-  TABLE: 'TableSelection',
-  SUMMARY: 'CreatedOrder',
-};
 
 export default function DishSelectionPage() {
   const [currentComponent, setCurrentComponent] = useState(VIEWS.PRODUCT);
   const { order, addItem, cleanedOrder, calculateTotal } = useOrder();
+  const [orderMenu, setOrderMenu] = useState(null);
 
   const goTo = (view) => setCurrentComponent(view);
 
   const completeOrder = () => {
-    // Remove items with 0 quantity
     const validOrder = cleanedOrder();
-      if (Object.keys(validOrder).length === 0) {
-        toast.error("Ваше замовлення порожнє.");
-        return;
-      }
+    if (Object.keys(validOrder).length === 0) {
+      toast.error("Ваше замовлення порожнє.");
+      return;
+    }
 
-    // Calculate total cost and switch view
     const totalCost = calculateTotal();
     addItem("totalCost", totalCost);
     goTo(VIEWS.TABLE);
   };
 
-   const COMPONENTS = {
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const { data } = await sendToServer("api/menu", null, "GET");
+        setOrderMenu(data.menu);
+      } catch (error) {
+        console.error("Error fetching menu:", error);
+      }
+    };
+    fetchMenu();
+  }, []);
+
+  // Handle loading
+  if (!orderMenu) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  // Prepare derived data after loading
+  const menuCategories = orderMenu.categories.map((item) => Object.keys(item)[0]);
+  const categoryItems = orderMenu.categories.map((item) => Object.values(item)[0]);
+  const popular = `#category_${menuCategories.length - 2}`;
+  const recommended = `#category_${menuCategories.length - 1}`;
+  const allMenuItems = orderMenu.dishes
+  const COMPONENTS = {
     [VIEWS.PRODUCT]: (
       <>
-        <ProductViewer />
-        <div className="complete-order-button-wrapper">
-          <button  className="order-button" onClick={completeOrder}>Завершити замовлення</button>
+        <ProductViewer menuCategories={menuCategories} categoryItems={categoryItems} allMenuItems={allMenuItems} />
+        <div className="button-wrapper">
+          <button className="order-button" onClick={completeOrder}>
+            Завершити замовлення
+          </button>
         </div>
       </>
     ),
@@ -48,12 +69,15 @@ export default function DishSelectionPage() {
     [VIEWS.SUMMARY]: <OrderSummary goTo={goTo} />,
   };
 
+  const navLinks = [
+    { to: popular, src: heart, alt: 'Популярні страви', name: 'Популярне' },
+    { to: recommended, src: star, alt: 'Рекомендовані страви', name: 'Рекомендуємо' },
+  ];
 
- return (
+  return (
     <>
-      <Header />
+      <Header navLinks={navLinks} />
       {COMPONENTS[currentComponent]}
-      <ToastContainer position="top-center" autoClose={3000} />
       <Footer />
     </>
   );

@@ -1,18 +1,20 @@
 import Header from '../components/Header';
 import CommentForm from './CommentForm';
 import Footer from '../components/Footer';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import hot from '../assets/images/hot.svg';
+import home from '../assets/images/home.svg';
 
 
 export default function FeedbackPage() {
+  const navLinks = [
+    { to: "/", src: home, alt: 'Головна', name: 'Головна' },
+    { to: "/menu", src: hot, alt: 'Меню', name: 'Меню' },
+  ];
 
   return (
     <>
-      <Header />
+      <Header navLinks={navLinks}/>
       <CommentForm />
-      <ToastContainer position="top-center" autoClose={3000} />
       <Footer />
     </>
   )

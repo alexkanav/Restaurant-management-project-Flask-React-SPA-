@@ -16,8 +16,8 @@ export default function Home() {
       <Comments />
       <Contacts />
 
-      <div className="menu-link-wrapper">
-        <button className="order-button" onClick={() => navigate('/choice-dish/')}>Меню для замовлення</button>
+      <div className="button-wrapper">
+        <button className="order-button" onClick={() => navigate('/menu')}>Меню для замовлення</button>
       </div>
 
       <Footer />

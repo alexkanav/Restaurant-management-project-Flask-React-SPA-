@@ -41,12 +41,17 @@ export default function CommentForm() {
 
     setLoading(true);
     try {
-      const data = await sendToServer('comments', formData, 'POST');
-      toast.success(data.message);
+      const { data } = await sendToServer('api/send-comment', formData, 'POST');
+      toast.success(data.message || 'Дякуємо за відгук!');
       setFormData({ name: '', message: '' });
       setTimeout(() => navigate('/'), 3000);
     } catch (error) {
-      toast.error('Помилка під час відправки. Спробуйте пізніше.');
+      if (error?.status === 401) {
+        toast.error("Ви не авторизовані.");
+        navigate('/');
+      } else {
+        toast.error(error.message || "Помилка під час відправки. Спробуйте пізніше.");
+      }
     } finally {
       setLoading(false);
     }
@@ -54,16 +59,16 @@ export default function CommentForm() {
 
   return (
     <>
-      <div className="container">
-        <p className="comment">
-          Залиште, будь ласка, свій відгук, що сподобалося і що нам слід виправити.
-        </p>
-      </div>
+      <p className="comment">
+        Залиште, будь ласка, свій відгук, що сподобалося і що нам слід виправити.
+      </p>
+      <hr className="custom-hr" />
 
-      <section className="form">
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="name">Ваше Ім'я:</label>
+      <div className="container">
+        <form className="register-form" onSubmit={handleSubmit}>
+
+          <div className="form-name">
+            <label htmlFor="name">Ваше Ім'я: </label>
             <input
               id="name"
               name="name"
@@ -76,8 +81,8 @@ export default function CommentForm() {
             />
           </div>
 
+          <label htmlFor="message">Ваш відгук:</label>
           <div className="table-textarea">
-            <label htmlFor="message">Ваш відгук:</label>
             <textarea
               id="message"
               name="message"
@@ -89,13 +94,15 @@ export default function CommentForm() {
               placeholder="Ваш відгук ..."
               disabled={loading}
             />
+          <small className="count">Використано: {formData.message.length}/500</small>
           </div>
 
           <button className="complete-butt" type="submit" disabled={loading}>
             {loading ? 'Відправка...' : 'Відправити'}
           </button>
+
         </form>
-      </section>
+      </div>
     </>
   );
 }

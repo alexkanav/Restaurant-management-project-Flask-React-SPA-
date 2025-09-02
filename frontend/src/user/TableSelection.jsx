@@ -1,26 +1,29 @@
 import { useOrder } from '../context/OrderContext';
-
+import { VIEWS } from '../constants/views';
+import {tablesAvailable} from '../../config.json';
 
 export default function TableSelection({ goTo }) {
   const { addItem } = useOrder();
 
   const addTableNumber = (num) => {
     addItem("table", num);
-    goTo("CreatedOrder")
+    goTo(VIEWS.SUMMARY)
   };
 
   return (
     <div className="block-table">
       <h3>Виберіть номер вашого столика</h3>
-      {[...Array(10).keys()].map((num) => (
+
+      {tablesAvailable.map((num) => (
         <button
           key={num}
           className="table-btn"
-          onClick={() => addTableNumber(num + 1)}
+          onClick={() => addTableNumber(num)}
         >
-          {num + 1}
+          {num}
         </button>
       ))}
+
     </div>
   );
 }

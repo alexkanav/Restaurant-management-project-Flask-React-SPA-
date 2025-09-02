@@ -1,7 +1,7 @@
 import { useOrder } from '../context/OrderContext';
 
 
-export default function OrderDetail() {
+export default function OrderDetails() {
   const { order} = useOrder();
 
   const dishKeys = Object.keys(order).filter(
@@ -22,13 +22,13 @@ export default function OrderDetail() {
             </div>
             <div className="text-block">
               {Object.keys(dish.additions).map((addName) => (
-                 <span key={addName}>{addName} </span>
+                 <span key={addName}>{addName}, </span>
               ))}
             </div>
           </div>
         )
-        }
-      )}
+      })}
+
       <hr />
       <h3>Ваше замовлення на суму: {order.totalCost} грн.</h3>
     </>

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import AddOnMenu from './AddOnMenu'
 import { sendToServer } from '../utils/api';
 import love from '../assets/images/love.jpg';
@@ -9,17 +10,16 @@ import { useOrder } from '../context/OrderContext';
 
 
 export default function ProductCard(props) {
-    const { order, updateItem } = useOrder();
-
-  const { dishId, dishAttributes, price, isPop, isRec,  createdOrder, addOnMenu, updateProduct } = props;
+  const { code, name, description, price, image_link, likes, isPop, isRec, extras} = props;
+  const { order, updateItem } = useOrder();
   const [likeDish, setLikeDish] = useState(true);
-  let currentDish = order[dishId]
-  const handleProductQuantity = (event, dishId, price) => {
-    updateItem(dishId, {name: dishAttributes.name, quantity: event.target.value, price: price, additions: {}})
-    updateProduct();
-  }
-
   const [showDetails, setShowDetails] = useState(false);
+
+  const currentDish = order[code]
+
+  const handleProductQuantity = (event, code, price) => {
+    updateItem(code, {name: name, quantity: event.target.value, price: price, additions: {}});
+  }
 
   const handleShowDetails = () => {
     setShowDetails(prev => !prev);
@@ -27,18 +27,22 @@ export default function ProductCard(props) {
 
   const addLikeToDish = async () => {
     try {
-      const data = await sendToServer("add-like", {dishId}, "POST");
+      const data = await sendToServer(`api/dishes/${code}/like`, null, "POST");
       setLikeDish(false);
     } catch (error) {
+      if (error?.status === 401) {
+        toast.error("Спочатку замовте страву.");
+      } else {
         console.error('Error liking dish:', error);
       }
+    }
   };
 
   return (
     <div className="card-wrap">
       <div className="card-box">
         <div className="card-cont">
-          <div className="card-name">{dishAttributes.name}</div>
+          <div className="card-name">{name}</div>
           <div className="card-price">
             {price} грн.
 
@@ -58,34 +62,32 @@ export default function ProductCard(props) {
                   alt="Лайк"
                   onClick={addLikeToDish}
                 />
-                <span className="num_like_menu">{dishAttributes.likes}</span>
+                <span className="num_like_menu">{likes}</span>
               </>
             ) : (
               <>
                 <img className="d_icon_LM" src={likeB} alt="Лайк" />
-                <span className="num_like_menu">{dishAttributes.likes + 1}</span>
+                <span className="num_like_menu">{likes + 1}</span>
               </>
             )}
           </div>
 
-          <div className="card-descr">{dishAttributes.description}</div>
+          <div className="description-collapsed">{description}</div>
         </div>
 
         <img
           className="card-image"
-          src={`/${dishAttributes.image_link}`}
+          src={`/${image_link}`}
           loading="lazy"
           onClick={handleShowDetails}
-          alt={dishAttributes.name}
+          alt={name}
         />
       </div>
 
       <select
-        id="number-select"
-         value={currentDish?.quantity ?? "0"}
-
+        value={currentDish?.quantity ?? "0"}
         className={(currentDish?.quantity && currentDish.quantity !== "0") ? "amount-activ" : "amount"}
-        onChange={(event) => {handleProductQuantity(event, dishId, price)}}
+        onChange={(event) => {handleProductQuantity(event, code, price)}}
       >
         <option value="0">Замовити</option>
         {[...Array(10).keys()].map((num) => (
@@ -96,33 +98,29 @@ export default function ProductCard(props) {
       </select>
 
       <button onClick={handleShowDetails}>
-        {showDetails ? 'приховати' : 'показати'}
+        {showDetails ? "приховати" : "показати"}
       </button>
 
       {showDetails && (
         <div>
           <img
-            src={`/${dishAttributes.image_link}`}
-            alt={dishAttributes.name}
+            src={`/${image_link}`}
+            alt={name}
             onClick={handleShowDetails}
             style={{ width: '100%', marginTop: '10px' }}
           />
-          <p>{dishAttributes.description}</p>
+          <p>{description}</p>
         </div>
       )}
-
-      {addOnMenu && (
+      {extras && (
           <AddOnMenu
-              dishId={dishId}
-              addOnMenu={addOnMenu}
-              dishName={dishAttributes.name}
-              createdOrder={createdOrder}
-              updateProduct={updateProduct}
+              dishId={code}
+              addOnMenu={extras}
+              dishName={name}
               currentDish={currentDish}
           />
       )}
 
     </div>
   );
-
 };
