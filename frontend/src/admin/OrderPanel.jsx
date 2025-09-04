@@ -27,7 +27,7 @@ export default function OrderPanel() {
     }
   }, [userName, loading, navigate]);
 
-  const navLinks = []
+  const navLinks =  [{ to: '/admin', src: control, alt: 'Панель', name: 'Панель' }]
 
   return (
     <>

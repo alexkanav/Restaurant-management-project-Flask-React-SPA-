@@ -2,10 +2,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_jwt_extended import JWTManager
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import SQLAlchemyError
 import logging
-from flask_jwt_extended import JWTManager
 
 from config import log_file_path
 

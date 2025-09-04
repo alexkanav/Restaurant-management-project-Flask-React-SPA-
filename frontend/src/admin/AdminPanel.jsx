@@ -20,9 +20,10 @@ export default function AdminPanel() {
     [VIEWS.REGISTER]: <Register userName={userName} setUserName={setUserName} goTo={goTo} />,
   };
 
-    const navLinks = [
-    { to: '/order-panel', src: text, alt: 'Замовлення', name: 'Замовлення' },
-  ];
+    const navLinks = (currentComponent===VIEWS.DASHBOARD)
+      ? [{ to: '/order-panel', src: text, alt: 'Замовлення', name: 'Замовлення' }]
+      : [] ;
+
 
   return (
     <>
