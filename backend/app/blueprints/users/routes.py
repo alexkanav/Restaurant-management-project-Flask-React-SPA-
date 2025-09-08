@@ -1,5 +1,5 @@
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies
-from flask import Blueprint, request, jsonify, send_from_directory, current_app
+from flask import Blueprint, request, jsonify
 
 from .models import User, Dish, Order, Comment, Category
 from app.extensions import cache, logger, safe_commit, limiter
