@@ -5,7 +5,7 @@ import Footer from '../components/Footer'
 import OrderBoard from './OrderBoard'
 import OrderCard from './OrderCard'
 import { checkAuth, logout } from '../utils/authUtils';
-
+import control from '../assets/images/control.svg';
 
 export default function OrderPanel() {
   const navigate = useNavigate();

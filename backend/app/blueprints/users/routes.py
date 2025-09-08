@@ -1,4 +1,3 @@
-import os
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
 
@@ -7,17 +6,6 @@ from app.extensions import cache, logger, safe_commit, limiter
 
 
 users_bp = Blueprint('users', __name__)
-
-# Serve React build
-@users_bp.route('/', defaults={'path': ''})
-@users_bp.route('/<path:path>')
-def serve(path):
-    react_dir = os.path.abspath(os.path.join(current_app.root_path, '..', '..', 'frontend'))
-
-    if path != "" and os.path.exists(os.path.join(react_dir, path)):
-        return send_from_directory(react_dir, path)
-    else:
-        return send_from_directory(react_dir, 'index.html')
 
 
 @users_bp.route('/api/users/me', methods=['GET'])
