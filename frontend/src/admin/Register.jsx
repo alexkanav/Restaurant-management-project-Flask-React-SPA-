@@ -6,34 +6,42 @@ import { VIEWS } from '../constants/views';
 
 export default function Register({ goTo }) {
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (formData) => {
-    const success = await register(formData, setFieldErrors);
-    if (success) {
-      goTo(VIEWS.LOGIN);
+    setLoading(true);
+
+    try {
+      const success = await register(formData, setFieldErrors);
+      if (success) {
+        goTo(VIEWS.LOGIN);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <div className="notice">
-        <button className="complete-butt" onClick={() => goTo(VIEWS.LOGIN)}>
-          Авторизація
-        </button>
-      </div>
-
       <Form
         fields={[
-          { name: 'username', label: "Ім'я", type: 'text' },
-          { name: 'email', label: 'Email', type: 'email' },
-          { name: 'password', label: 'Пароль', type: 'password' },
-          { name: 'confirmPassword', label: 'Підтвердіть пароль', type: 'password' },
+          { name: 'username', type: 'text', placeholder: "Ім'я", maxLength: 20 },
+          { name: 'email', type: 'email', placeholder: 'Email', maxLength: 20 },
+          { name: 'password', type: 'password', placeholder: "Пароль", maxLength: 20 },
+          { name: 'confirmPassword', type: 'password', placeholder: "Підтвердіть пароль", maxLength: 20 },
         ]}
         name="Реєстрація"
         buttonText="Реєструватись"
         onSubmit={handleSubmit}
         fieldErrors={fieldErrors}
+        loading={loading}
+        note={
+          <p className="form-note">
+            Маєте акаунт?
+            <button className="m-btn" type="button" onClick={() => goTo(VIEWS.LOGIN)}>
+              Авторизація
+            </button>
+          </p>
+        }
       />
-    </>
   );
 }
