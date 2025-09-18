@@ -11,7 +11,7 @@ const NavMenu = ({ to, src, alt, name }) => {
   const navData = () => (
     <>
       <img loading="lazy" className="nav-icon__image" src={src} alt={alt} />
-      {name}
+      <span className="top-menu-label">{name}</span>
     </>
   );
 
@@ -42,11 +42,6 @@ export default function Header({ navLinks }) {
         <img id="logo" src={logo} alt="Cafe Logo" />
       </Link>
 
-      <div className="nav-icon">
-        <Link to="/">
-          <img className="nav-icon__image" src={home} alt="Головна сторінка" />
-        </Link>
-      </div>
 
       <nav className="top-nav-menu">
         {navLinks.map((linkData, index) => (

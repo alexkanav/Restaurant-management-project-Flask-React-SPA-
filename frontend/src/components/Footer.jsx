@@ -6,7 +6,7 @@ export default function Footer() {
 
   return (
     <div className="footer">
-      Ми у соціальних мережах:
+      <div className="note"> Ми у соціальних мережах:</div>
       <div className="social-icon">
         <a
           href="https://facebook.com"

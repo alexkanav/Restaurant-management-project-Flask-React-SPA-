@@ -14,7 +14,9 @@ export default function FeedbackPage() {
   return (
     <>
       <Header navLinks={navLinks}/>
-      <CommentForm />
+      <div className="content">
+        <CommentForm />
+      </div>
       <Footer />
     </>
   )

@@ -5,7 +5,7 @@ import Dashboard from './Dashboard'
 import Register from './Register'
 import Login from './Login'
 import { VIEWS } from '../constants/views';
-import text from '../assets/images/text.svg';
+import note from '../assets/images/note.svg';
 
 
 export default function AdminPanel() {
@@ -21,14 +21,16 @@ export default function AdminPanel() {
   };
 
     const navLinks = (currentComponent===VIEWS.DASHBOARD)
-      ? [{ to: '/order-panel', src: text, alt: 'Замовлення', name: 'Замовлення' }]
+      ? [{ to: '/order-panel', src: note, alt: 'Замовлення', name: 'Замовлення' }]
       : [] ;
 
 
   return (
     <>
       <Header navLinks={navLinks}/>
-      {COMPONENTS[currentComponent]}
+      <div className="content">
+        {COMPONENTS[currentComponent]}
+      </div>
       <Footer />
     </>
   );

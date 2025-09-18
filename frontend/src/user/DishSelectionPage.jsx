@@ -53,7 +53,7 @@ export default function DishSelectionPage() {
     fetchMenu();
   }, []);
   if (!menuCategories.length || !categoryItems.length || !Object.keys(allMenuItems).length) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">Завантажую меню із сервера...</div>
   }
 
   const COMPONENTS = {
@@ -75,15 +75,19 @@ export default function DishSelectionPage() {
     [VIEWS.SUMMARY]: <OrderSummary goTo={goTo} />,
   };
 
-  const navLinks = [
-    { to: `#category_${menuCategories.length - 2}`, src: heart, alt: 'Популярні страви', name: 'Популярне' },
-    { to: `#category_${menuCategories.length - 1}`, src: star, alt: 'Рекомендовані страви', name: 'Рекомендуємо' },
-  ];
+  const navLinks = (currentComponent === VIEWS.PRODUCT)
+    ? [
+        { to: `#category_${menuCategories.length - 2}`, src: heart, alt: 'Популярні страви', name: 'Популярне' },
+        { to: `#category_${menuCategories.length - 1}`, src: star, alt: 'Рекомендовані страви', name: 'Рекомендуємо' },
+      ]
+    : [];
 
   return (
     <>
       <Header navLinks={navLinks} />
-      {COMPONENTS[currentComponent]}
+      <div className="content">
+        {COMPONENTS[currentComponent]}
+      </div>
       <Footer />
     </>
   );

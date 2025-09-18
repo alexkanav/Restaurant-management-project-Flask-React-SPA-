@@ -4,11 +4,8 @@
   cursor: grab;
   user-select: none;
   white-space: nowrap;
-  border: 1px solid #ccc;
-  padding: 10px;
   scroll-behavior: smooth;
 }
-
 .dragscroll-container:active {
   cursor: grabbing;
 }
