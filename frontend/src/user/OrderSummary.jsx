@@ -6,6 +6,7 @@ import  OrderDetails from './OrderDetails';
 import { useOrder } from '../context/OrderContext';
 import { VIEWS } from '../constants/views';
 import { fetchOrCreateUser } from '../utils/authUtils';
+import { getUserDiscount } from '../utils/userUtils';
 
 
 export default function OrderSummary({ goTo }) {
@@ -13,22 +14,30 @@ export default function OrderSummary({ goTo }) {
   const [orderId, setOrderId] = useState(null);
   const { order } = useOrder();
   const [userId, setUserId] = useState(null);
+  const [discount, setDiscount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const fetchUserIdAndDiscount = async () => {
       try {
         const userId = await fetchOrCreateUser();
-        if (userId) {
-          setUserId(userId);
-        } else {
-          toast.error("Ви не зареєстровані, можливо, у вашому браузері блокуються cookie.");
+
+        if (!userId) {
+          toast.error("Ви не зареєстровані.");
+          return;
         }
+
+        setUserId(userId);
+
+        const discountValue = await getUserDiscount();
+        setDiscount(discountValue);
+
       } catch (error) {
-        toast.error(error.message || "Не вдалося отримати дані користувача.");
+        toast.error("Не вдалося отримати дані користувача або знижку.");
       }
     };
 
-    fetchUserId();
+    fetchUserIdAndDiscount();
   }, []);
 
   const postOrder = async () => {
@@ -42,50 +51,49 @@ export default function OrderSummary({ goTo }) {
       return;
     }
 
+     setLoading(true);
+
     try {
       const { data } = await sendToServer("api/order", order, "POST");
       setOrderId(data.id);
       toast.success(data.message || "Замовлення успішно відправлено!");
     } catch (error) {
       toast.error(error.message || "Замовлення не надіслано.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="popup">
-      {orderId && (
-        <>
-          <div className="success-message">
-            Дякуємо. Ваше замовлення #{orderId} прийнято і буде виконане через - 20 хвилин.
-          </div>
-          <div className="text-block">
-            (Час виконання замовлення розраховується автоматично відповідно до вибраних вами страв)
-          </div>
-          <hr />
-        </>
-      )}
-
-      <OrderDetails />
-
-      <div className="button-group">
-        {orderId ? (
-          <>
-            <button className="cancel-butt" onClick={() => navigate('/')}>Вийти</button>
-            <button className="complete-butt" onClick={() => navigate('/feedback')}>Залишити відгук</button>
-          </>
-        ) : (
-          <>
-            <button className="cancel-butt" onClick={() => goTo(VIEWS.PRODUCT)}>Змінити замовлення</button>
-            <button
-              className="complete-butt"
-              onClick={postOrder}
-              disabled={!order || orderId}
-            >
-              Підтверджую
-            </button>
-          </>
-        )}
+  if (!userId)
+    return (
+      <div className='warning-message'>
+        <h3>Ви не зареєстровані, можливо, у вашому браузері блокуються cookie.</h3>
+        <hr/>
+        <p>Cпробуйте перевірити ваше інтернет-з'єднання. Якщо проблема не зникає, очистіть кеш браузера, спробуйте інший пристрій.</p>
       </div>
+    )
+
+  return (
+    <div className="order-summary">
+      {orderId ? (
+        <>
+          <div className="category-block">Дякуємо. Ваше замовлення #{orderId} прийнято.</div>
+          <div className="ord-container">
+            <div>Орієнтовний час для виконання замовлення - 20 хвилин.</div>
+
+            <div className="text-block">
+            (Час виконання замовлення розраховується автоматично)
+            <hr />
+
+              <div className="btn-block">
+                  <button className="cancel-btn" onClick={() => navigate('/')}>Вийти</button>
+                  <button className="apply-btn" onClick={() => navigate('/feedback')}>Залишити відгук</button>
+              </div>
+          </div>
+        </>
+      ) : (
+        <OrderDetails discount={discount} goTo={goTo} postOrder={postOrder} loading={loading}/>
+      )}
     </div>
-  );
+  )
 }

@@ -2,7 +2,9 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_a
 from flask import Blueprint, request, jsonify
 
 from .models import User, Dish, Order, Comment, Category
-from app.extensions import cache, logger, safe_commit, limiter
+from app.extensions import cache, logger, safe_commit, limiter, db
+
+from app.utils import calculate_discount
 
 
 users_bp = Blueprint('users', __name__)
@@ -14,6 +16,33 @@ def get_current_user():
     claims = get_jwt()
     current_user_id = claims.get("id")
     return jsonify(id=current_user_id), 200
+
+
+@users_bp.route('/api/users/discount', methods=['GET'])
+@jwt_required()
+def get_discount():
+    claims = get_jwt()
+    current_user_id = claims.get("id")
+
+    if not current_user_id:
+        return jsonify(message="Користувач не авторизований"), 401
+
+    try:
+        user = db.session.get(User, current_user_id)
+
+        if not user:
+            return jsonify(message="Користувача не знайдено"), 404
+
+        total_sum = user.total_sum or 0
+
+        discount = calculate_discount(total_sum)
+        return jsonify(discount=discount), 200
+
+    except Exception:
+        logger.exception(f"Помилка при отриманні знижки для користувача {current_user_id}")
+        return jsonify(message="Помилка на сервері"), 500
+
+
 
 
 @users_bp.route('/api/users', methods=['POST'])
@@ -37,7 +66,7 @@ def create_user():
 
     except Exception:
         logger.exception("User not created")
-        return jsonify(message="Помилка на сервері"), 400
+        return jsonify(message="Помилка на сервері"), 500
 
 
 @users_bp.route('/api/get-comments', methods=['GET'])
@@ -140,7 +169,7 @@ def place_order():
 
     except Exception:
         logger.exception("Order not processed")
-        return jsonify(message="Помилка на сервері"), 400
+        return jsonify(message="Помилка на сервері"), 500
 
 
 @users_bp.route('/api/dishes/<int:dish_id>/like', methods=['POST'])
