@@ -33,14 +33,13 @@ export default function OrderPanel() {
   return (
     <>
       <Header navLinks={navLinks}/>
-
-      <div className="top-left"> Користувач: {userName}</div>
-      {selectedOrder ? (
-        <OrderCard selectedOrder={selectedOrder} setSelectedOrder={setSelectedOrder} />
-      ) : (
-        userName && <OrderBoard setSelectedOrder={setSelectedOrder} />
-      )}
-
+      <div className='content'>
+        {selectedOrder ? (
+          <OrderCard selectedOrder={selectedOrder} setSelectedOrder={setSelectedOrder} />
+        ) : (
+          userName && <OrderBoard setSelectedOrder={setSelectedOrder} name={userName}/>
+        )}
+      </div>
       <Footer />
     </>
   );

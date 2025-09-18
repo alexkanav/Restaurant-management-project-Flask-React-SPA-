@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
 
 
-export default function OrderBoard({ setSelectedOrder }) {
+export default function OrderBoard({ setSelectedOrder, name }) {
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState(false);
   const orderCountRef = useRef(0);
@@ -41,13 +41,17 @@ export default function OrderBoard({ setSelectedOrder }) {
 
   return (
     <>
-      {status ? (
-        <div className="top-right">Замовлення актуальні</div>
-      ) : (
-        <div className="top-right error">Помилка оновлення</div>
-      )}
-
-      <div className="order_count">
+      <div className='order-note'>
+        <span>Користувач: {name}</span>
+        <span>
+          {status ? (
+            <div>Замовлення актуальні</div>
+          ) : (
+            <div className="error">Помилка оновлення</div>
+          )}
+        </span>
+      </div>
+      <div className="order-count">
         Невиконаних замовлень: {orderCountRef.current}
       </div>
 
@@ -55,36 +59,36 @@ export default function OrderBoard({ setSelectedOrder }) {
         <React.Fragment key={order.id}>
           <button id={`btn-${order.id}`}
             onClick={() => setSelectedOrder(order)}
-            className="order-card">
-              <div className="order-card-body">
-
-                <div className="order-card-title">
-                  <span> {order.id}</span>
-                  <span className="table-num">Стіл  {order.table}</span>
-                </div>
-
-                <div className="order-card-description">
-                  {Object.keys(order.order_details).map((code) => {
-                    const item = order.order_details[code];
-                    return (
-                      <div className="order-card-item" key={code}>
-                        <strong>{item.name}: {item.quantity}</strong>
-                        {item.additions && Object.keys(item.additions).length > 0 && (
-                          <div className="order-additions"> - додатки: (
-                            {Object.keys(item.additions).map((addition) => (
-                                <span key={addition}>{addition}, </span>
-                            ))}
-                          )
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="order-card-price">{order.order_sum} грн.</div>
+            className="order-card"
+          >
+            <div className="order-card-body">
+              <div className="order-card-title">
+                <span> {order.id}</span>
+                <span className="table-num">Стіл  {order.table}</span>
               </div>
-           </button>
+
+              <div className="order-card-description">
+                {Object.keys(order.order_details).map((code) => {
+                  const item = order.order_details[code];
+                  return (
+                    <div className="order-card-item" key={code}>
+                      <strong>{item.name}: {item.quantity}</strong>
+                      {item.additions && Object.keys(item.additions).length > 0 && (
+                        <div className="order-additions"> - додатки: (
+                          {Object.keys(item.additions).map((addition) => (
+                              <span key={addition}>{addition}, </span>
+                          ))}
+                        )
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="order-card-price">{order.order_sum} грн.</div>
+            </div>
+          </button>
         </React.Fragment>
       ))}
     </>
