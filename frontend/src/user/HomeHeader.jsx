@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Description from './Description';
-import logo from '../assets/images/logo.png';
-import hot from '../assets/images/hot.svg';
+import logo from '../assets/images/cafegray.png';
+import hot from '../assets/images/hot2.svg';
 import text from '../assets/images/text.svg';
 
 
@@ -13,23 +13,16 @@ export default function HomeHeader() {
         <Link to="/" aria-label="Головна сторінка">
           <img id="logo" src={logo} alt="Cafe Logo" />
         </Link>
-
         <nav className="top-nav-menu">
-          <ul>
-            <li>
-              <Link className="menu-link" to="/menu">
-                <img className="logo-menu" src={hot} alt="Меню" />
-                Меню
-              </Link>
-            </li>
-            <li>
-              <a className="menu-link" href="#comments">
-                <img className="logo-menu" src={text} alt="Відгуки" />
-                Відгуки
-              </a>
-            </li>
-          </ul>
-        </nav>
+                <Link className="header-butt" to="/menu">
+                  <img className="logo-menu" src={hot} alt="Меню" />
+                  <span className="top-menu-label">Меню</span>
+                </Link>
+                <a className="header-butt" href="#comments">
+                  <img className="logo-menu" src={text} alt="Відгуки" />
+                  <span className="top-menu-label">Відгуки</span>
+                </a>
+          </nav>
       </div>
 
       <Description />
