@@ -1,13 +1,36 @@
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies
 from flask import Blueprint, request, jsonify
 
-from .models import User, Dish, Order, Comment, Category
+from .models import User, Dish, Order, Comment, Category, Coupon
 from app.extensions import cache, logger, safe_commit, limiter, db
-
 from app.utils import calculate_discount
 
 
 users_bp = Blueprint('users', __name__)
+
+
+@users_bp.route('/api/users', methods=['POST'])
+@limiter.limit("1 per minute")
+def create_user():
+    try:
+        user_id = User.create_new_user()
+
+        # Create JWT with user identity
+        access_token = create_access_token(
+            identity=str(user_id),
+            additional_claims={
+                "role": "client",
+                "id": user_id
+            }
+        )
+
+        response = jsonify(user_id=user_id)
+        set_access_cookies(response, access_token)
+        return response, 200
+
+    except Exception:
+        logger.exception("User not created")
+        return jsonify(message="Помилка на сервері"), 500
 
 
 @users_bp.route('/api/users/me', methods=['GET'])
@@ -43,32 +66,6 @@ def get_discount():
         return jsonify(message="Помилка на сервері"), 500
 
 
-
-
-@users_bp.route('/api/users', methods=['POST'])
-@limiter.limit("1 per minute")
-def create_user():
-    try:
-        user_id = User.create_new_user()
-
-        # Create JWT with user identity
-        access_token = create_access_token(
-            identity=str(user_id),
-            additional_claims={
-                "role": "client",
-                "id": user_id
-            }
-        )
-
-        response = jsonify(user_id=user_id)
-        set_access_cookies(response, access_token)
-        return response, 200
-
-    except Exception:
-        logger.exception("User not created")
-        return jsonify(message="Помилка на сервері"), 500
-
-
 @users_bp.route('/api/get-comments', methods=['GET'])
 @cache.cached(timeout=3600, key_prefix='get_comments')
 def get_comments():
@@ -94,10 +91,10 @@ def get_comments():
 @jwt_required()
 @limiter.limit("5 per minute")
 def send_comment():
-    try:
-        claims = get_jwt()
-        user_id = claims.get("id")
+    claims = get_jwt()
+    user_id = claims.get("id")
 
+    try:
         data = request.get_json()
         if not data:
             raise ValueError("No comment data received")
@@ -152,18 +149,28 @@ def get_menu():
 @users_bp.route('/api/order', methods=['POST'])
 @jwt_required()
 def place_order():
-    try:
-        claims = get_jwt()
-        user_id = claims.get("id")
+    claims = get_jwt()
+    user_id = claims.get("id")
 
+    try:
         order = request.get_json()
         if not order:
             raise ValueError("No order data received")
 
-        order_sum = int(order.pop('totalCost', 0))
         table_num = order.pop('table', 0)
-
-        new_order_id = Order.add_order(user_id, table_num, order_sum, order)
+        original_cost = float(order.pop('totalCost', 0))
+        loyalty_pct = int(order.pop('loyaltyPercentage', 0))
+        coupon_pct = int(order.pop('couponPercentage', 0))
+        final_cost = float(order.pop('payable', 0))
+        new_order_id = Order.add_order(
+            user_id,
+            table_num,
+            original_cost,
+            loyalty_pct,
+            coupon_pct,
+            final_cost,
+            order,
+        )
 
         return jsonify({"message": "Ваше замовлення прийнято", "id": new_order_id}), 201
 
@@ -175,16 +182,38 @@ def place_order():
 @users_bp.route('/api/dishes/<int:dish_id>/like', methods=['POST'])
 @jwt_required()
 @limiter.limit("5 per minute")
-def like_dish(dish_id):
+def like_dish(dish_id: int):
     try:
         Dish.query.filter_by(code=dish_id).update({Dish.likes: Dish.likes + 1})
 
         if not safe_commit():
             logger.error("Could not update dish views.")
 
-        return jsonify({"success": True}), 200
+        return jsonify(success=True), 200
 
     except Exception:
         logger.exception("Like update error")
-        return jsonify({"success": False}), 400
+        return jsonify(success=False), 400
+
+
+@users_bp.route('/api/coupon/<string:coupon_code>', methods=['POST'])
+@jwt_required()
+def get_coupon(coupon_code: str):
+    claims = get_jwt()
+    user_id = claims.get("id")
+
+    try:
+        coupon = Coupon.query.filter_by(code=coupon_code).first()
+        if not coupon:
+            return jsonify(message="Купон не знайдено"), 404
+
+        success, discount = coupon.use_coupon(user_id)
+        if not success:
+            return jsonify(message="Купон невалідний або протермінований"), 400
+
+        return jsonify(discount=discount), 200
+
+    except Exception:
+        logger.exception("Помилка при використанні купона")
+        return jsonify(message="Сталася помилка"), 500
 

@@ -14,33 +14,34 @@ export default function OrderSummary({ goTo }) {
   const [orderId, setOrderId] = useState(null);
   const { order } = useOrder();
   const [userId, setUserId] = useState(null);
-  const [discount, setDiscount] = useState(0);
+  const [loyaltyPercentage, setLoyaltyPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchUserIdAndDiscount = async () => {
+    const fetchUserIdAndLoyaltyPercentage = async () => {
       try {
         const userId = await fetchOrCreateUser();
 
         if (!userId) {
-          toast.error("Ви не зареєстровані.");
-          return;
+         setError("Ви не зареєстровані.");
+         return;
         }
 
         setUserId(userId);
 
         const discountValue = await getUserDiscount();
-        setDiscount(discountValue);
+        setLoyaltyPercentage(discountValue);
 
       } catch (error) {
-        toast.error("Не вдалося отримати дані користувача або знижку.");
+        setError("Не вдалося отримати дані користувача або знижку.");
       }
     };
 
-    fetchUserIdAndDiscount();
+    fetchUserIdAndLoyaltyPercentage();
   }, []);
 
-  const postOrder = async () => {
+  const postOrder = async (loyaltyPercentage, couponPercentage, payable) => {
     if (!userId) {
       toast.error("Не вдалося отримати ID користувача.");
       return;
@@ -54,7 +55,7 @@ export default function OrderSummary({ goTo }) {
      setLoading(true);
 
     try {
-      const { data } = await sendToServer("api/order", order, "POST");
+      const { data } = await sendToServer("api/order", {...order, loyaltyPercentage, couponPercentage, payable}, "POST");
       setOrderId(data.id);
       toast.success(data.message || "Замовлення успішно відправлено!");
     } catch (error) {
@@ -64,12 +65,15 @@ export default function OrderSummary({ goTo }) {
     }
   };
 
-  if (!userId)
+  if (error)
     return (
       <div className='warning-message'>
-        <h3>Ви не зареєстровані, можливо, у вашому браузері блокуються cookie.</h3>
+        <h3>{error} Можливо, у вашому браузері блокуються cookie</h3>
         <hr/>
-        <p>Cпробуйте перевірити ваше інтернет-з'єднання. Якщо проблема не зникає, очистіть кеш браузера, спробуйте інший пристрій.</p>
+        <p>
+          Cпробуйте перевірити ваше інтернет-з'єднання.
+          Якщо проблема не зникає, очистіть кеш браузера, спробуйте інший пристрій.
+        </p>
       </div>
     )
 
@@ -79,21 +83,25 @@ export default function OrderSummary({ goTo }) {
         <>
           <div className="category-block">Дякуємо. Ваше замовлення #{orderId} прийнято.</div>
           <div className="ord-container">
-            <div>Орієнтовний час для виконання замовлення - 20 хвилин.</div>
+            <div className="ord-hdr">Орієнтовний час для виконання замовлення -  хвилин.</div>
 
-            <div className="text-block">
-            (Час виконання замовлення розраховується автоматично)
+            <div className="text-block">(Час виконання розраховується автоматично)</div>
             <hr />
-
-              <div className="btn-block">
-                  <button className="cancel-btn" onClick={() => navigate('/')}>Вийти</button>
-                  <button className="apply-btn" onClick={() => navigate('/feedback')}>Залишити відгук</button>
-              </div>
+            <div className="btn-block">
+                <button className="cancel-btn" onClick={() => navigate('/')}>Вийти</button>
+                <button className="apply-btn" onClick={() => navigate('/feedback')}>Залишити відгук</button>
+            </div>
           </div>
         </>
       ) : (
-        <OrderDetails discount={discount} goTo={goTo} postOrder={postOrder} loading={loading}/>
+        <OrderDetails
+         loyaltyPercentage={loyaltyPercentage}
+         goTo={goTo}
+         postOrder={postOrder}
+         userId={userId}
+         loading={loading}
+        />
       )}
     </div>
-  )
+  );
 }

@@ -14,6 +14,7 @@ class User(db.Model):
 
     orders: Mapped[list["Order"]] = relationship(back_populates="user")
     comments: Mapped[list["Comment"]] = relationship(back_populates="user")
+    coupons: Mapped[list["Coupon"]] = relationship(back_populates="user")
 
     @property
     def sessions(self) -> int:
@@ -21,7 +22,7 @@ class User(db.Model):
 
     @property
     def total_sum(self) -> int:
-        return sum(order.order_sum for order in self.orders)
+        return sum(order.final_cost for order in self.orders)
 
     def __repr__(self):
         return f"<User {self.id}>"
@@ -94,7 +95,10 @@ class Order(db.Model):
     completed_by: Mapped[int] = mapped_column(default=0)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     table_number: Mapped[int] = mapped_column(nullable=True)
-    order_sum: Mapped[int]
+    original_cost: Mapped[float]
+    loyalty_pct: Mapped[int] = mapped_column(default=0)
+    coupon_pct: Mapped[int] = mapped_column(default=0)
+    final_cost: Mapped[float]
     order_details = mapped_column(JSON)
 
     user: Mapped["User"] = relationship(back_populates="orders")
@@ -107,16 +111,28 @@ class Order(db.Model):
             "id": self.id,
             "table": self.table_number,
             "order_details": self.order_details,
-            "order_sum": self.order_sum
+            "final_cost": self.final_cost
         }
 
     @classmethod
-    def add_order(cls, user_id: int, table_num: int, order_sum: int, order: JSON):
+    def add_order(
+        cls,
+        user_id: int,
+        table_num: int,
+        original_cost: float,
+        loyalty_pct: int,
+        coupon_pct: int,
+        final_cost: float,
+        order: JSON,
+    ):
         new_order = cls(
             user_id=user_id,
             table_number=table_num,
-            order_sum=order_sum,
-            order_details=order
+            original_cost=original_cost,
+            loyalty_pct=loyalty_pct,
+            coupon_pct=coupon_pct,
+            final_cost=final_cost,
+            order_details=order,
         )
         db.session.add(new_order)
         if not safe_commit():
@@ -159,4 +175,46 @@ class Comment(db.Model):
         db.session.add(new_comment)
         if not safe_commit():
             logger.error("Could not add comment.")
+
+
+class Coupon(db.Model):
+    __tablename__ = 'coupons'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    code: Mapped[str] = mapped_column(db.String(20), unique=True)
+    discount_value: Mapped[int] = mapped_column(default=0)
+    active: Mapped[bool] = mapped_column(default=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
+
+    user: Mapped['User'] = relationship('User', back_populates='coupons')
+
+    def __repr__(self):
+        return f"<Coupon {self.code}>"
+
+    def use_coupon(self, user_id: int) -> tuple[bool, int]:
+        """
+        Marks the coupon as used by the given user if it is active and not expired.
+
+        Returns:
+            (bool, int): A tuple indicating whether the coupon was successfully used
+                         and the discount value to apply.
+        """
+        if not self.active:
+            logger.warning(f"Coupon {self.code} is inactive.")
+            return False, 0
+
+        if self.expires_at and datetime.utcnow() >= self.expires_at:
+            logger.warning(f"Coupon {self.code} has expired.")
+            return False, 0
+
+        self.user_id = user_id
+        self.active = False
+
+        if not safe_commit():
+            logger.error(f"Failed to commit coupon usage for {self.code}.")
+            return False, 0
+
+        return True, self.discount_value
 
