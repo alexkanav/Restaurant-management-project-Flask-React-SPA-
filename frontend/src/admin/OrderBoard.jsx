@@ -72,21 +72,27 @@ export default function OrderBoard({ setSelectedOrder, name }) {
                   const item = order.order_details[code];
                   return (
                     <div className="order-card-item" key={code}>
-                      <strong>{item.name}: {item.quantity}</strong>
+                      <div className="details">
+                        <span><strong>{item.name}</strong>: </span>
+                        <span><strong>{item.quantity}</strong></span>
+                      </div>
+
                       {item.additions && Object.keys(item.additions).length > 0 && (
-                        <div className="order-additions"> - додатки: (
-                          {Object.keys(item.additions).map((addition) => (
-                              <span key={addition}>{addition}, </span>
-                          ))}
-                        )
+                        <div className="order-additions">
+                          <span>- додатки: (
+                           {Object.keys(item.additions).map((addition) => (
+                              <span key={addition}> {addition}, </span>
+                            ))}
+                          )</span>
                         </div>
                       )}
+
                     </div>
                   );
                 })}
               </div>
 
-              <div className="order-card-price">{order.order_sum} грн.</div>
+              <div className="order-card-price">{order.final_cost} грн.</div>
             </div>
           </button>
         </React.Fragment>

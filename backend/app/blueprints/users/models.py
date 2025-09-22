@@ -111,7 +111,10 @@ class Order(db.Model):
             "id": self.id,
             "table": self.table_number,
             "order_details": self.order_details,
-            "final_cost": self.final_cost
+            "original_cost": self.original_cost,
+            "loyalty_pct": self.loyalty_pct,
+            "coupon_pct": self.coupon_pct,
+            "final_cost": self.final_cost,
         }
 
     @classmethod
