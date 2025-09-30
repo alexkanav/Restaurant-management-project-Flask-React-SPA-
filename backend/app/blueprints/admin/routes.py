@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies, unset_jwt_cookies
 
-from .models import Staff
+from .models import Staff, SalesSummary, DishesStats
 from app.blueprints.users.models import Order
 from app.extensions import logger, db
 
@@ -126,3 +126,49 @@ def complete_order(order_id):
         logger.exception("Order close error")
         return jsonify(message='Замовлення скасовано'), 500
 
+
+@admin_bp.route('/api/statistics', methods=['GET'])
+@jwt_required()
+def statistics():
+    date = []
+    total_sales = []
+    orders = []
+    returning_customers = []
+    avg_check_size = []
+
+    dishes = []
+    dish_orders = []
+
+    all_sales = SalesSummary.query.order_by(SalesSummary.date).all()
+
+    for sale in all_sales:
+        date.append(sale.date.strftime('%d-%m'))
+        total_sales.append(sale.total_sales)
+        orders.append(sale.orders)
+        returning_customers.append(sale.returning_customers)
+        avg_check = sale.total_sales / sale.orders if sale.orders > 0 else 0.0
+        avg_check_size.append(round(avg_check, 2))
+
+    sales_summary = {
+        'date': date,
+        'totalSales': total_sales,
+        'avgCheckSize': avg_check_size,
+        'orders': orders,
+        'returningCustomers': returning_customers,
+    }
+
+    dishes_stats_raw = DishesStats.query.order_by(DishesStats.orders.desc()).all()
+
+    for dish in dishes_stats_raw:
+        dishes.append(dish.code)
+        dish_orders.append(dish.orders)
+
+    dishes_stats = {
+        'dishes': dishes,
+        'orders': dish_orders,
+    }
+
+    return jsonify({
+        'salesSummary': sales_summary,
+        'dishesStats': dishes_stats,
+    })

@@ -1,4 +1,6 @@
+from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import DateTime, JSON
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.extensions import db, safe_commit, logger
@@ -36,3 +38,26 @@ class Staff(db.Model):
             return False
         return True
 
+
+class SalesSummary(db.Model):
+    __tablename__ = 'sales_summary'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[datetime] = mapped_column(DateTime, unique=True)
+    total_sales: Mapped[float]
+    orders: Mapped[int]
+    returning_customers: Mapped[int]
+
+    def __repr__(self):
+        return f"<Sales_summary {self.date}>"
+
+
+class DishesStats(db.Model):
+    __tablename__ = 'dishes_stats'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(db.String(10), unique=True)
+    orders: Mapped[int]
+
+    def __repr__(self):
+        return f"<Dishes_stats {self.code}>"
