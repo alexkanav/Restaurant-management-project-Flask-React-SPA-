@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify
 
 from .models import User, Dish, Order, Comment, Category, Coupon
 from app.extensions import cache, logger, safe_commit, limiter, db
-from app.utils import calculate_discount
+from app.utils import calculate_discount, calculate_order_lead_time
 
 
 users_bp = Blueprint('users', __name__)
@@ -171,8 +171,9 @@ def place_order():
             final_cost,
             order,
         )
+        order_lead_time = calculate_order_lead_time(order.keys())
 
-        return jsonify({"message": "Ваше замовлення прийнято", "id": new_order_id}), 201
+        return jsonify({"message": "Ваше замовлення прийнято", "id": new_order_id, "leadTime": order_lead_time}), 201
 
     except Exception:
         logger.exception("Order not processed")

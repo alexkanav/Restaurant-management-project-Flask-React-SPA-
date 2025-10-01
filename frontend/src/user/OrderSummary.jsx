@@ -17,6 +17,8 @@ export default function OrderSummary({ goTo }) {
   const [loyaltyPercentage, setLoyaltyPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [leadTime, setLeadTime] = useState(20);
+
 
   useEffect(() => {
     const fetchUserIdAndLoyaltyPercentage = async () => {
@@ -57,6 +59,7 @@ export default function OrderSummary({ goTo }) {
     try {
       const { data } = await sendToServer("api/order", {...order, loyaltyPercentage, couponPercentage, payable}, "POST");
       setOrderId(data.id);
+      setLeadTime(data.leadTime)
       toast.success(data.message || "Замовлення успішно відправлено!");
     } catch (error) {
       toast.error(error.message || "Замовлення не надіслано.");
@@ -82,15 +85,19 @@ export default function OrderSummary({ goTo }) {
       {orderId ? (
         <>
           <div className="category-block">Дякуємо. Ваше замовлення #{orderId} прийнято.</div>
+          <div className="master-container">
           <div className="ord-container">
-            <div className="ord-hdr">Орієнтовний час для виконання замовлення -  хвилин.</div>
-
+            <div className="ord-hdr">
+              Орієнтовний час для виконання замовлення - <strong>{leadTime}</strong>  хвилин.
+            </div>
             <div className="text-block">(Час виконання розраховується автоматично)</div>
             <hr />
+
             <div className="btn-block">
                 <button className="cancel-btn" onClick={() => navigate('/')}>Вийти</button>
                 <button className="apply-btn" onClick={() => navigate('/feedback')}>Залишити відгук</button>
             </div>
+          </div>
           </div>
         </>
       ) : (
