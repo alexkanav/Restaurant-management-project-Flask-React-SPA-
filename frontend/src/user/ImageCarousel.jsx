@@ -7,7 +7,6 @@ export default function ImageCarousel() {
 
   return (
     <>
-      <div className="main-block-name">Наші страви:</div>
       <Carousel
         showThumbs={false}
         autoPlay
@@ -17,7 +16,7 @@ export default function ImageCarousel() {
         {carouselImages.map((img, index) => (
           <div key={img.link}>
             <img src={`/static/images/${img.link}`} alt={img.alt} loading="lazy" />
-            <p className="legend">{img.legend}</p>
+            {/* <p className="legend">{img.legend}</p>*/}
           </div>
         ))}
       </Carousel>

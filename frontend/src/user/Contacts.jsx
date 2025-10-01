@@ -9,16 +9,17 @@ export default function Contacts() {
 
   return (
     <>
-      <div className="main-block-name">Наші контакти:</div>
       <div
       className="element-animation"
       ref={(el) => (elementRef.current[0] = el)}
       >
         <div className="contacts-menu">
-          <p>Всі питання та пропозиції вирішуються з адміністратором</p>
-          <img className="cont-img" src={telegram} alt="Telegram" />
-          <img className="cont-img" src={whatsapp} alt="WhatsApp" />
-          {contacts}
+          <div className="main-block-wrap">
+            <p>Всі питання та пропозиції вирішуються з адміністратором</p>
+            <img className="cont-img" src={telegram} alt="Telegram" />
+            <img className="cont-img" src={whatsapp} alt="WhatsApp" />
+            {contacts}
+          </div>
         </div>
       </div>
 
@@ -29,21 +30,22 @@ export default function Contacts() {
         ref={(el) => (elementRef.current[1] = el)}
       >
         <div className="work">
-          Ми раді Вас бачити:
-          <div className="block-text">
+          <div className="main-block-wrap">
+            Ми раді Вас бачити:
+            <div className="block-text">
 
-            <div className="left-column">
-              {weekdays.map((day, index) => (
-                <div key={index}>{day}</div>
-              ))}
+              <div className="left-column">
+                {weekdays.map((day, index) => (
+                  <div key={index}>{day}</div>
+                ))}
+              </div>
+
+              <div className="right-column">
+                {openingHours.map((hour, index) => (
+                  <div key={index}>{hour}</div>
+                ))}
+              </div>
             </div>
-
-            <div className="right-column">
-              {openingHours.map((hour, index) => (
-                <div key={index}>{hour}</div>
-              ))}
-            </div>
-
           </div>
         </div>
       </div>

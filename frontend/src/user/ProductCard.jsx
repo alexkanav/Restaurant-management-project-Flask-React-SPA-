@@ -7,6 +7,7 @@ import star from '../assets/images/star.svg';
 import likeW from '../assets/images/likeW.jpg';
 import likeB from '../assets/images/likeB.jpg';
 import { useOrder } from '../context/OrderContext';
+import { imgFolder } from '../../config.json'
 
 
 export default function ProductCard(props) {
@@ -77,7 +78,7 @@ export default function ProductCard(props) {
 
         <img
           className="card-image"
-          src={`/${image_link}`}
+          src={`${imgFolder}${image_link}`}
           loading="lazy"
           onClick={handleShowDetails}
           alt={name}
@@ -104,7 +105,7 @@ export default function ProductCard(props) {
       {showDetails && (
         <div>
           <img
-            src={`/${image_link}`}
+            src={`${imgFolder}${image_link}`}
             alt={name}
             onClick={handleShowDetails}
             style={{ width: '100%', marginTop: '10px' }}

@@ -159,7 +159,7 @@ class Comment(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user_name: Mapped[str] = mapped_column(db.String(20))
-    comment_date_time: Mapped[str] = mapped_column(db.String(10))
+    comment_date_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     comment_text: Mapped[str] = mapped_column(db.String(200))
 
     user: Mapped["User"] = relationship(back_populates="comments")
@@ -172,7 +172,6 @@ class Comment(db.Model):
         new_comment = cls(
             user_id=user_id,
             user_name=comm_name,
-            comment_date_time=datetime.today().strftime("%d-%m-%Y %H:%M"),
             comment_text=comm_text
         )
         db.session.add(new_comment)

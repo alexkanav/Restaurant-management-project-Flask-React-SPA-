@@ -30,8 +30,8 @@ export default function CommentForm() {
 
   return (
     <>
-      <div className='category-block'>
-        Залиште, будь ласка, свій відгук, що сподобалося і що нам слід виправити.
+      <div className="category-block">
+        Залиште, будь ласка, свій відгук.
       </div>
 
       <Form

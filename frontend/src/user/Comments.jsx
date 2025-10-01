@@ -24,8 +24,6 @@ export default function Comments() {
 
   return (
     <div id="comments">
-      <div className="main-block-name">Відгуки наших клієнтів:</div>
-
       {loading ? (
         <div className="comments-loading">Завантаження відгуків...</div>
       ) : data.length === 0 ? (
@@ -33,18 +31,19 @@ export default function Comments() {
       ) : (
         data.map((item, index) => (
           <div className="card-wrap" key={item.id || index}>
-            <div className="card-box">
-              <div className="card-cont cont_full">
-                <div className="card-comm">
-                  <strong>{item.name}</strong>: <span className="card-note">{item.time}</span>
+            <div className="main-block-wrap">
+              <div className="card-box">
+                <div className="card-cont cont_full">
+                  <div className="card-comm">
+                    <strong>{item.name}</strong>: <span className="card-note">{item.time}</span>
+                  </div>
+                  <div className="card-descr">{item.message}</div>
                 </div>
-                <div className="card-descr">{item.message}</div>
               </div>
             </div>
           </div>
         ))
       )}
-
     </div>
   );
 }

@@ -10,7 +10,7 @@ users_bp = Blueprint('users', __name__)
 
 
 @users_bp.route('/api/users', methods=['POST'])
-@limiter.limit("1 per minute")
+@limiter.limit("5 per minute")
 def create_user():
     try:
         user_id = User.create_new_user()
@@ -75,7 +75,7 @@ def get_comments():
             {
                 "id": c.id,
                 "name": c.user_name,
-                "time": c.comment_date_time,
+                "time": c.comment_date_time.strftime('%d-%m-%Y'),
                 "message": c.comment_text
             } for c in data
         ]
@@ -98,8 +98,8 @@ def send_comment():
         data = request.get_json()
         if not data:
             raise ValueError("No comment data received")
-        name = data.get('name')
-        message = data.get('message')
+        name = data.get('username')
+        message = data.get('textarea')
         Comment.add_comment(user_id, name, message)
 
         # Invalidate the cache for get_comments

@@ -49,7 +49,7 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
     <>
       <div className='category-block'> Перевірте та підтвердіть ваше замовлення!</div>
       <div className='master-container'>
-        <div className="checkout">
+        <div className="content-block">
           <div className="order-card-body">
             <div className="order-table-num">Ваш стіл  {order.table}</div>
 

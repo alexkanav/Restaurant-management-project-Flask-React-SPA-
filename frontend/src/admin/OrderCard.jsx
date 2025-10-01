@@ -17,7 +17,7 @@ export default function OrderCard({ selectedOrder, setSelectedOrder }) {
     <>
       <div className='category-block'> Виконане замовлення!</div>
       <div className='master-container'>
-        <div className="checkout">
+        <div className="content-block">
           <div className="order-card-body">
             <div className="order-card-title">
               <span> #{selectedOrder.id}</span>

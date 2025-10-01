@@ -52,6 +52,7 @@ export default function DishSelectionPage() {
     };
     fetchMenu();
   }, []);
+
   if (!menuCategories.length || !categoryItems.length || !Object.keys(allMenuItems).length) {
     return <div className="loading">Завантажую меню із сервера...</div>
   }
