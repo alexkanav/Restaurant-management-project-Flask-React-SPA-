@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from config import discount_tiers, dish_prep_time
+from config import DISCOUNT_TIERS, DISH_PREP_TIME
 
 
 def calculate_discount(total_sum: float, tiers: [list[tuple[float, int]]] = None) -> int:
@@ -14,7 +14,7 @@ def calculate_discount(total_sum: float, tiers: [list[tuple[float, int]]] = None
         int: The applicable discount percentage.
     """
     if tiers is None:
-        tiers = discount_tiers
+        tiers = DISCOUNT_TIERS
 
     sorted_tiers = sorted(tiers)
 
@@ -41,6 +41,6 @@ def calculate_order_lead_time(dishes: Iterable[str]) -> int:
     if not dishes:
         return 0
 
-    return max(dish_prep_time.get(dish, 0) for dish in dishes)
+    return max(DISH_PREP_TIME.get(dish, 0) for dish in dishes)
 
 

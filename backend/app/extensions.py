@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-from config import log_file_path
+from config import LOG_FILE_PATH
 
 
 class Base(DeclarativeBase):
@@ -24,7 +24,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # Configure logging
 logging.basicConfig(
-    filename=log_file_path,
+    filename=LOG_FILE_PATH,
     level=logging.ERROR,
     format='%(asctime)s %(levelname)s: %(message)s\n'
 )
