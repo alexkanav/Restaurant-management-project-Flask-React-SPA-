@@ -36,10 +36,10 @@ export default function CommentForm() {
 
       <Form
         fields={[
-          { name: 'username', type: 'text', placeholder: "Ім'я", maxLength: 20},
-          { name: 'textarea', type: 'textarea', placeholder: "Ваш відгук ...", maxLength: 500 },
+          { name: 'username', type: 'text', placeholder: "Ім'я", required: true, maxLength: 20},
+          { name: 'textarea', type: 'textarea', placeholder: "Ваш відгук ...", required: true, maxLength: 500 },
         ]}
-        name="Відгуки"
+        title="Відгуки"
         buttonText="Надіслати"
         onSubmit={handleSubmit}
         loading={loading}

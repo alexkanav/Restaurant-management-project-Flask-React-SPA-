@@ -24,12 +24,12 @@ export default function Register({ goTo }) {
   return (
       <Form
         fields={[
-          { name: 'username', type: 'text', placeholder: "Ім'я", maxLength: 20 },
-          { name: 'email', type: 'email', placeholder: 'Email', maxLength: 20 },
-          { name: 'password', type: 'password', placeholder: "Пароль", maxLength: 20 },
-          { name: 'confirmPassword', type: 'password', placeholder: "Підтвердіть пароль", maxLength: 20 },
+          { name: 'username', type: 'text', placeholder: "Ім'я", required: true, maxLength: 20 },
+          { name: 'email', type: 'email', placeholder: 'Email', required: true, maxLength: 20 },
+          { name: 'password', type: 'password', placeholder: "Пароль", required: true, maxLength: 20 },
+          { name: 'confirmPassword', type: 'password', placeholder: "Підтвердіть пароль", required: true, maxLength: 20 },
         ]}
-        name="Реєстрація"
+        title="Реєстрація"
         buttonText="Реєструватись"
         onSubmit={handleSubmit}
         fieldErrors={fieldErrors}

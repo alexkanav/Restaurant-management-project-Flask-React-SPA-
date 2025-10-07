@@ -5,7 +5,7 @@ import "./Form.css"
 
 export default function Form({
   fieldErrors,
-  name,
+  title,
   fields,
   onSubmit,
   buttonText,
@@ -40,11 +40,11 @@ export default function Form({
   return (
     <div className="form-container">
       <form className="form" onSubmit={handleSubmit(onSubmit)}>
-        <p className="f-title">{name}</p>
+        <p className="f-title">{title}</p>
 
-        {fields.map(({ name, type, placeholder, label, maxLength = 300 }) => {
+        {fields.map(({ name, type, placeholder, label, required, maxLength = 300 }) => {
           const { ref, ...fieldProps } = register(name, {
-            required: true,
+            required,
             maxLength,
           });
 
@@ -81,11 +81,12 @@ export default function Form({
                 <input
                   id={name}
                   className="f-input"
-                  {...register(name, { required: true })}
                   type={type}
-                  maxLength={maxLength}
                   placeholder={placeholder}
+                  maxLength={maxLength}
                   disabled={loading}
+                  {...fieldProps}
+                  ref={ref}
                 />
               )}
 

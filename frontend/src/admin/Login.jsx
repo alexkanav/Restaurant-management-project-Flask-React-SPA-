@@ -27,10 +27,10 @@ export default function Login({ userName, setUserName, goTo }) {
   return (
       <Form
         fields={[
-          { name: 'email', type: 'email', placeholder: 'Email', maxLength: 20 },
-          { name: 'password', type: 'password', placeholder: 'Пароль', maxLength: 20 },
+          { name: 'email', type: 'email', placeholder: 'Email', required: true, maxLength: 20},
+          { name: 'password', type: 'password', placeholder: 'Пароль', required: true, maxLength: 20},
         ]}
-        name="Авторизація"
+        title="Авторизація"
         buttonText="Логін"
         onSubmit={handleSubmit}
         fieldErrors={fieldErrors}
