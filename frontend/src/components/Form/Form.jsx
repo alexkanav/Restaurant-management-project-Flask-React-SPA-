@@ -46,6 +46,14 @@ export default function Form({
           const { ref, ...fieldProps } = register(name, {
             required,
             maxLength,
+            validate: (value) => {
+              if (type === 'number') {
+                if (!Number.isInteger(Number(value))) {
+                  return 'Будь ласка, введіть ціле число';
+                }
+              }
+              return true;
+            }
           });
 
           return (
