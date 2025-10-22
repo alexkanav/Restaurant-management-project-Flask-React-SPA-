@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import React, { useRef, useEffect } from 'react';
-import "./Form.css"
+import './Form.css';
 
 
 export default function Form({

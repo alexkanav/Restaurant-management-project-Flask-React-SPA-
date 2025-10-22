@@ -134,5 +134,5 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
         </div>
       </div>
     </>
-  )
+  );
 }

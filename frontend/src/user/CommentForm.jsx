@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
-import Form from '../components/Form/Form';
+import { Form } from '../components';
 
 
 export default function CommentForm() {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Chart from '../components/Chart';
+import { Chart, Spinner } from '../components';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
 
@@ -105,9 +105,8 @@ export default function Statistics() {
     ];
   }, [dishesData]);
 
-  if (!salesData || !dishesData) {
-    return <div className="loading">Завантаження статистики...</div>;
-  }
+  if (!salesData || !dishesData)
+    return <Spinner />;
 
   return (
     <div className="statistics-content">

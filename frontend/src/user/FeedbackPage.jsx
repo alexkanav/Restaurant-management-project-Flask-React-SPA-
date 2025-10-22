@@ -1,6 +1,5 @@
-import Header from '../components/Header';
+import { Header, Footer } from '../components';
 import CommentForm from './CommentForm';
-import Footer from '../components/Footer';
 import hot from '../assets/images/hot.svg';
 import home from '../assets/images/home.svg';
 
@@ -19,5 +18,5 @@ export default function FeedbackPage() {
       </div>
       <Footer />
     </>
-  )
+  );
 }

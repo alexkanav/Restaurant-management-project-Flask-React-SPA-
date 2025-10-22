@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
+import { Spinner} from '../components';
 
 
 export default function Comments() {
@@ -25,7 +26,7 @@ export default function Comments() {
   return (
     <div id="comments">
       {loading ? (
-        <div className="comments-loading">Завантаження відгуків...</div>
+        <Spinner />
       ) : data.length === 0 ? (
         <div className="comments-empty">Ще немає відгуків.</div>
       ) : (

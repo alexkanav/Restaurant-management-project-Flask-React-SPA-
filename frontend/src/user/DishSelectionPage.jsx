@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { Header, Footer, Spinner } from '../components';
 import ProductViewer from './ProductViewer';
 import OrderSummary from './OrderSummary';
 import TableSelection from './TableSelection';
@@ -53,9 +52,8 @@ export default function DishSelectionPage() {
     fetchMenu();
   }, []);
 
-  if (!menuCategories.length || !categoryItems.length || !Object.keys(allMenuItems).length) {
-    return <div className="loading">Завантажую меню із сервера...</div>
-  }
+  if (!menuCategories.length || !categoryItems.length || !Object.keys(allMenuItems).length)
+    return <Spinner />
 
   const COMPONENTS = {
     [VIEWS.PRODUCT]: (

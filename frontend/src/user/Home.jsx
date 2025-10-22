@@ -3,7 +3,7 @@ import Description from './Description';
 import ImageCarousel from './ImageCarousel';
 import Comments from './Comments';
 import Contacts from './Contacts';
-import Footer from '../components/Footer';
+import { Footer } from '../components';
 import logo from '../assets/images/cafegray.png';
 import hot from '../assets/images/hot2.svg';
 import text from '../assets/images/text.svg';

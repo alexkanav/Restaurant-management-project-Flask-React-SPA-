@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import AddOnMenu from './AddOnMenu'
+import AddOnMenu from './AddOnMenu';
 import { sendToServer } from '../utils/api';
 import love from '../assets/images/love.jpg';
 import star from '../assets/images/star.svg';
 import likeW from '../assets/images/likeW.jpg';
 import likeB from '../assets/images/likeB.jpg';
 import { useOrder } from '../context/OrderContext';
-import { imgFolder } from '../../config.json'
+import { imgFolder } from '../../config.json';
 
 
 export default function ProductCard(props) {
@@ -16,11 +16,11 @@ export default function ProductCard(props) {
   const [likeDish, setLikeDish] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
 
-  const currentDish = order[code]
+  const currentDish = order[code];
 
   const handleProductQuantity = (event, code, price) => {
     updateItem(code, {name: name, quantity: event.target.value, price: price, additions: {}});
-  }
+  };
 
   const handleShowDetails = () => {
     setShowDetails(prev => !prev);
@@ -124,4 +124,4 @@ export default function ProductCard(props) {
 
     </div>
   );
-};
+}

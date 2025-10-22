@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Form from '../components/Form/Form';
+import { Form } from '../components';
 import { register } from '../utils/authUtils';
 import { VIEWS } from '../constants/views';
 

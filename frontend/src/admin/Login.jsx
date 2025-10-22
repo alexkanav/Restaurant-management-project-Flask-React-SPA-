@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Form from '../components/Form/Form';
+import { Form } from '../components';
 import { login } from '../utils/authUtils';
 import { VIEWS } from '../constants/views';
 

@@ -1,7 +1,7 @@
 import { weekdays, contacts, openingHours } from '../../config.json';
 import telegram from '../assets/images/teleg.png';
 import whatsapp from '../assets/images/whatsapp.png';
-import { useScrollAnimation } from '../hooks/useScrollAnimation'
+import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 
 export default function Contacts() {
