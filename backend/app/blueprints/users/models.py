@@ -28,39 +28,63 @@ class User(db.Model):
         return f"<User {self.id}>"
 
     @classmethod
-    def create_new_user(cls):
+    def create_new_user(cls) -> int:
         new_user = cls()
         db.session.add(new_user)
         if not safe_commit():
             logger.error("Could not create new user.")
-            return None
+            return 0
         return new_user.id
 
 
 class Category(db.Model):
     __tablename__ = 'categories'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(db.String(20), unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(db.String(30), unique=True)
+    order: Mapped[int] = mapped_column(default=0)
 
     dishes: Mapped[list["Dish"]] = relationship(back_populates="category")
 
     def __repr__(self):
         return f"<Category {self.name}>"
 
+    @classmethod
+    def update_categories(cls, categories: list[str]) -> None:
+        """
+        order_list: list of category names in the desired order.
+        If a category name doesn't exist, it will be created.
+        """
+        existing_names = {cat.name for cat in db.session.query(cls.name).all()}
+
+        for order, name in enumerate(categories, start=1):
+            if name in existing_names:
+                # Update existing category’s order
+                db.session.query(cls).filter_by(name=name).update(
+                    {"order": order},
+                    synchronize_session=False
+                )
+            else:
+                # Create new category if not found
+                new_category = Category(name=name, order=order)
+                db.session.add(new_category)
+
+        if not safe_commit():
+            logger.error("Could not update categories.")
+
 
 class Dish(db.Model):
     __tablename__ = 'dishes'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     code: Mapped[int] = mapped_column(unique=True)
-    name: Mapped[str] = mapped_column(db.String(20), unique=True)
+    name_en: Mapped[str] = mapped_column(db.String(30))
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
     is_popular: Mapped[bool] = mapped_column(default=False)
     is_recommended: Mapped[bool] = mapped_column(default=False)
-    name_ua: Mapped[str] = mapped_column(db.String(20))
-    price: Mapped[int]
-    description: Mapped[str] = mapped_column(db.String(300))
+    name_ua: Mapped[str] = mapped_column(db.String(50))
+    price: Mapped[int] = mapped_column(default=0)
+    description: Mapped[str] = mapped_column(db.String(500))
     image_link: Mapped[str] = mapped_column(db.String(50))
     views: Mapped[int] = mapped_column(default=0)
     likes: Mapped[int] = mapped_column(default=0)
@@ -69,7 +93,37 @@ class Dish(db.Model):
     category: Mapped["Category"] = relationship(back_populates="dishes")
 
     def __repr__(self):
-        return f"<Dish {self.code} name={self.name}>"
+        return f"<Dish {self.code} name={self.name_ua}>"
+
+    @classmethod
+    def add_or_update_dish(cls, dish_data: dict[str, str | int]) -> int | None:
+        raw_price = dish_data.get("price")
+        price = int(raw_price) if raw_price != "" else 0
+        dish = db.session.query(cls).filter_by(code=dish_data["code"]).first()
+        if dish:
+            if dish_data.get("name_ua"):
+                dish.name_ua = dish_data["name_ua"]
+            if dish_data.get("description"):
+                dish.description = dish_data["description"]
+            if dish_data.get("image_link"):
+                dish.image_link = dish_data["image_link"]
+            dish.price = price
+        else:
+            dish = cls(
+                code=dish_data["code"],
+                name_ua=dish_data["name_ua"],
+                category_id=dish_data["category_id"],
+                description=dish_data["description"],
+                price=price,
+                image_link=dish_data["image_link"],
+            )
+            db.session.add(dish)
+
+        if not safe_commit():
+            logger.error("Could not add or update dish.")
+            return None
+
+        return dish.code
 
 
 class DishExtra(db.Model):
@@ -78,7 +132,7 @@ class DishExtra(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(db.String(20), unique=True)
     name_ua: Mapped[str] = mapped_column(db.String(20))
-    price: Mapped[int]
+    price: Mapped[int] = mapped_column(default=0)
     dish_id: Mapped[int] = mapped_column(ForeignKey('dishes.id'))
 
     dish: Mapped["Dish"] = relationship(back_populates="extras")
@@ -127,7 +181,7 @@ class Order(db.Model):
         coupon_pct: int,
         final_cost: float,
         order: JSON,
-    ):
+    ) -> int:
         new_order = cls(
             user_id=user_id,
             table_number=table_num,
@@ -140,11 +194,11 @@ class Order(db.Model):
         db.session.add(new_order)
         if not safe_commit():
             logger.error("Could not add order.")
-            return None
+            return 0
         return new_order.id
 
     @classmethod
-    def update(cls, id: int, employee_id: int):
+    def update(cls, id: int, employee_id: int) -> None:
         instance = db.session.get(cls, id)
         if not instance:
             raise ValueError("Order not found")
@@ -168,7 +222,7 @@ class Comment(db.Model):
         return f"<Comment {self.id}"
 
     @classmethod
-    def add_comment(cls, user_id: int, comm_name: str, comm_text: str):
+    def add_comment(cls, user_id: int, comm_name: str, comm_text: str) -> None:
         new_comment = cls(
             user_id=user_id,
             user_name=comm_name,

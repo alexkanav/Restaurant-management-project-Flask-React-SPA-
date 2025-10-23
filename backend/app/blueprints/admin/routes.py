@@ -208,6 +208,34 @@ def upload_image():
     return jsonify({'error': 'Error saving image'}), 500
 
 
+@admin_bp.route('/api/menu', methods=['GET'])
+@jwt_required()
+def get_category():
+    claims = get_jwt()
+
+    # Check if the current user is an admin
+    if claims.get("role") != "staff":
+        return jsonify(message="Access Forbidden: Staff only"), 403
+
+    dishes = {}
+    for dish in Dish.query.all():
+        dishes[dish.code] = {
+            "name": dish.name_ua,
+            "description": dish.description,
+            "price": dish.price,
+            "image_link": dish.image_link,
+            "extras": {dish_extra.name_ua: dish_extra.price for dish_extra in dish.extras}
+        }
+
+    categories = [
+                {category.name: [dish.code for dish in category.dishes]}
+                for category in Category.query.order_by(Category.order.asc()).all()
+            ]
+    category_name_to_id = {cat: i for cat, i in db.session.query(Category.name, Category.id).all()}
+
+    return jsonify({"dishes": dishes, "categories": categories, "categoryIdMap": category_name_to_id}), 200
+
+
 @admin_bp.route('/api/category/update', methods=['POST'])
 @jwt_required()
 def category_update():

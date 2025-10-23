@@ -113,12 +113,12 @@ def send_comment():
 
 
 @users_bp.route('/api/menu', methods=['GET'])
-@cache.cached(timeout=3600)
+@cache.cached(timeout=3600, key_prefix='get_menu')
 def get_menu():
     popular = []
     recommended = []
     dishes = {}
-    for dish in Dish.query.all():
+    for dish in Dish.query.filter(Dish.price != 0).all():
         dishes[dish.code] = {
             "name": dish.name_ua,
             "description": dish.description,
@@ -135,14 +135,14 @@ def get_menu():
             recommended.append(dish.code)
 
     categories = [
-                {category.name: [dish.code for dish in category.dishes]}
-                for category in Category.query.all()
+                {category.name: [dish.code for dish in category.dishes if dish.price != 0]}
+                for category in Category.query.order_by(Category.order.asc()).all()
             ]
+
     categories.append({"Популярне": popular})
     categories.append({"Рекомендуємо": recommended})
 
     menu = {"categories": categories, "dishes": dishes}
-
     return jsonify(menu=menu), 200
 
 
