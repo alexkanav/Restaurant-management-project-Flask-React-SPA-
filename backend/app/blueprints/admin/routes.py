@@ -278,6 +278,17 @@ def dish_update():
         return jsonify(message="Помилка оновлення страви"), 400
 
 
+@admin_bp.route('/api/notification/count', methods=['GET'])
+@jwt_required()
+def get_unread_notification_count():
+    try:
+        count = AdminNotification.query.filter_by(is_read=False).count()
+        return jsonify(unread_notif_number=count), 200
+    except Exception:
+        logger.exception("Unread notification count error")
+        return jsonify(message='Помилка при перевірці сповіщень'), 400
+
+
 @admin_bp.route('/api/notification/unread', methods=['GET'])
 @jwt_required()
 def get_unread_notifications():
