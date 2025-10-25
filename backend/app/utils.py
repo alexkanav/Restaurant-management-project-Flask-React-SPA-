@@ -2,9 +2,17 @@ import os
 from PIL import Image
 import uuid
 from collections.abc import Iterable
+import enum
 
 from config import DISCOUNT_TIERS, DISH_PREP_TIME
 from app.extensions import logger
+
+
+class NotificationType(enum.Enum):
+    info = "info"
+    warning = "warning"
+    urgent = "urgent"
+    success = "success"
 
 
 def calculate_discount(total_sum: float, tiers: [list[tuple[float, int]]] = None) -> int:

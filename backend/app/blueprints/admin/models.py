@@ -1,9 +1,11 @@
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.types import DateTime, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, Enum
+from sqlalchemy.types import DateTime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.extensions import db, safe_commit, logger
+from app.utils import NotificationType
 
 
 class Staff(db.Model):
@@ -13,6 +15,8 @@ class Staff(db.Model):
     username: Mapped[str] = mapped_column(db.String(200))
     email: Mapped[str] = mapped_column(db.String(100), unique=True)
     password_hash: Mapped[str] = mapped_column(db.String(100))
+
+    notifications: Mapped[list["AdminNotification"]] = relationship(back_populates="staff")
 
     def __repr__(self):
         return f"<Staff {self.id}>"
@@ -37,6 +41,58 @@ class Staff(db.Model):
             logger.error("Could not add staff.")
             return False
         return True
+
+
+class AdminNotification(db.Model):
+    __tablename__ = "admin_notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    staff_id: Mapped[int | None] = mapped_column(ForeignKey("staff.id"), nullable=True)
+    title: Mapped[str] = mapped_column(db.String(50))
+    message: Mapped[str] = mapped_column(db.String(300))
+    type: Mapped[NotificationType] = mapped_column(
+        Enum(NotificationType), default=NotificationType.info
+    )
+    is_read: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    staff: Mapped["Staff"] = relationship(back_populates="notifications")
+
+    def __repr__(self):
+        return f"<AdminNotification {self.id} title={self.title!r}>"
+
+    @classmethod
+    def add_notification(
+        cls,
+        title: str,
+        message: str,
+        notif_type: NotificationType | str = "info",
+        staff_id: int | None = None,
+    ) -> int:
+        notif_type = NotificationType(notif_type)
+        new_notif = cls(
+            title=title,
+            message=message,
+            staff_id=staff_id,
+            type=notif_type,
+        )
+
+        db.session.add(new_notif)
+        if not safe_commit():
+            logger.error("Could not create admin notification.")
+            return 0
+        return new_notif.id
+
+    @classmethod
+    def mark_notification_as_read(cls, notification_id: int):
+        notification = cls.query.get(notification_id)
+        if not notification:
+            raise ValueError("Notification not found")
+        notification.is_read = True
+        notification.read_at = datetime.utcnow()
+        if not safe_commit():
+            logger.error("Failed to mark notification.")
 
 
 class SalesSummary(db.Model):

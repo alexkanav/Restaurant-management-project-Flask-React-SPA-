@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies, unset_jwt_cookies
 
-from .models import Staff, SalesSummary, DishesStats
+from .models import Staff, SalesSummary, DishesStats, AdminNotification
 from app.blueprints.users.models import Order, Category, Dish
 from app.extensions import logger, db, cache
 from werkzeug.utils import secure_filename
@@ -28,6 +28,7 @@ def check_session():
         return jsonify(message='User not found'), 404
 
     return jsonify(username=user.id), 200
+
 
 @admin_bp.route('/api/auth/login', methods=['POST'])
 def login():
@@ -275,4 +276,54 @@ def dish_update():
     except Exception:
         logger.exception("Dish update error")
         return jsonify(message="Помилка оновлення страви"), 400
+
+
+@admin_bp.route('/api/notification/unread', methods=['GET'])
+@jwt_required()
+def get_unread_notifications():
+    claims = get_jwt()
+
+    # Check if the current user is an admin
+    if claims.get("role") != "staff":
+        return jsonify(message="Access Forbidden: Staff only"), 403
+
+    try:
+        notif = AdminNotification.query.filter_by(is_read=False).order_by(AdminNotification.created_at.asc()).all()
+        data = [
+            {
+                "id": n.id,
+                "title": n.title,
+                "staff_id": n.staff_id,
+                "message": n.message,
+                "type": n.type.value if hasattr(n.type, "value") else n.type,
+                "created_at": n.created_at.isoformat(),
+            }
+            for n in notif
+        ]
+        return jsonify(data), 200
+
+    except Exception:
+        logger.exception("Error fetching unread notifications")
+        return jsonify(message="Помилка завантаження сповіщень"), 400
+
+
+@admin_bp.route("/api/notifications/<int:notification_id>/mark_as_read", methods=["POST"])
+@jwt_required()
+def mark_notification_as_read(notification_id: int):
+    claims = get_jwt()
+
+    # Check if the current user is an admin
+    if claims.get("role") != "staff":
+        return jsonify(message="Access Forbidden: Staff only"), 403
+
+    try:
+        AdminNotification.mark_notification_as_read(notification_id)
+        return jsonify(
+            message=f"Сповіщення:{notification_id} помічене як прочитане"
+        ), 200
+
+    except Exception as e:
+        logger.exception("Error marking notification as read")
+        return jsonify(message=f"Помилка оновлення сповіщення:{notification_id}"), 400
+
 
