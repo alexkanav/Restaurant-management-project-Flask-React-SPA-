@@ -125,6 +125,13 @@ class Dish(db.Model):
 
         return dish.code
 
+    @classmethod
+    def increment_likes(cls, dish_code: int) -> bool:
+        rows = cls.query.filter_by(code=dish_code).update({cls.likes: cls.likes + 1})
+        if not rows or not safe_commit():
+            return False
+        return True
+
 
 class DishExtra(db.Model):
     __tablename__ = 'dish_extras'

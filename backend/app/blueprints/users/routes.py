@@ -2,7 +2,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_a
 from flask import Blueprint, request, jsonify
 
 from .models import User, Dish, Order, Comment, Category, Coupon
-from app.extensions import cache, logger, safe_commit, limiter, db
+from app.extensions import cache, logger, limiter, db
 from app.utils import calculate_discount, calculate_order_lead_time
 
 
@@ -180,16 +180,13 @@ def place_order():
         return jsonify(message="Помилка на сервері"), 500
 
 
-@users_bp.route('/api/dishes/<int:dish_id>/like', methods=['POST'])
+@users_bp.route('/api/dishes/<int:dish_code>/like', methods=['PATCH'])
 @jwt_required()
 @limiter.limit("5 per minute")
-def like_dish(dish_id: int):
+def like_dish(dish_code: int):
     try:
-        Dish.query.filter_by(code=dish_id).update({Dish.likes: Dish.likes + 1})
-
-        if not safe_commit():
-            logger.error("Could not update dish views.")
-
+        if not Dish.increment_likes(dish_code):
+            return jsonify(success=False), 400
         return jsonify(success=True), 200
     except Exception:
         logger.exception("Like update error")
