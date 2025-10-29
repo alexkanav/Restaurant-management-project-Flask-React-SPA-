@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, Enum
-from sqlalchemy.types import DateTime
+from sqlalchemy import ForeignKey, Enum, DateTime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.extensions import db, safe_commit, logger

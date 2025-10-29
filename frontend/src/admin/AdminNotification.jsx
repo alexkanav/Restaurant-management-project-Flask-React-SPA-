@@ -18,7 +18,7 @@ export default function AdminNotification() {
 
   const markNotif = async (id) => {
     try {
-      const { data } = await sendToServer(`admin/api/notifications/${id}/mark_as_read`, null, "POST");
+      const { data } = await sendToServer(`admin/api/notifications/${id}/mark_as_read`, null, "PATCH");
       toast.success(data.message || "Сповіщення помічене як прочитане.");
     } catch (error) {
       toast.error(error.message || "Не вдалося оновити сповіщення.");

@@ -176,10 +176,7 @@ def statistics():
         'orders': dish_orders,
     }
 
-    return jsonify({
-        'salesSummary': sales_summary,
-        'dishesStats': dishes_stats,
-    }), 200
+    return jsonify(salesSummary=sales_summary, dishesStats=dishes_stats), 200
 
 
 @admin_bp.route('/api/upload', methods=['POST'])
@@ -192,21 +189,21 @@ def upload_image():
         return jsonify(message="Access Forbidden: Staff only"), 403
 
     if 'image' not in request.files:
-        return jsonify({'error': 'No image uploaded'}), 400
+        return jsonify(error='No image uploaded'), 400
 
     file = request.files['image']
     filename = secure_filename(file.filename)
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
     if not (is_allowed_file(filename, allowed_extensions) and validate_image(file)):
-        return jsonify({'error': 'Invalid image file'}), 400
+        return jsonify(error='Invalid image file'), 400
 
     saved_name = resize_and_save_image(file, current_app.config["UPLOAD_FOLDER"], 1000)
 
     if saved_name:
         image_url = saved_name
-        return jsonify({'message': 'Image uploaded successfully', 'url': image_url}), 200
+        return jsonify(message='Image uploaded successfully', url=image_url), 200
 
-    return jsonify({'error': 'Error saving image'}), 500
+    return jsonify(error='Error saving image'), 500
 
 
 @admin_bp.route('/api/menu', methods=['GET'])
@@ -234,10 +231,10 @@ def get_category():
             ]
     category_name_to_id = {cat: i for cat, i in db.session.query(Category.name, Category.id).all()}
 
-    return jsonify({"dishes": dishes, "categories": categories, "categoryIdMap": category_name_to_id}), 200
+    return jsonify(dishes=dishes, categories=categories, categoryIdMap=category_name_to_id), 200
 
 
-@admin_bp.route('/api/category/update', methods=['POST'])
+@admin_bp.route('/api/category/update', methods=['PATCH'])
 @jwt_required()
 def category_update():
     claims = get_jwt()
@@ -318,7 +315,7 @@ def get_unread_notifications():
         return jsonify(message="Помилка завантаження сповіщень"), 400
 
 
-@admin_bp.route("/api/notifications/<int:notification_id>/mark_as_read", methods=["POST"])
+@admin_bp.route("/api/notifications/<int:notification_id>/mark_as_read", methods=["PATCH"])
 @jwt_required()
 def mark_notification_as_read(notification_id: int):
     claims = get_jwt()

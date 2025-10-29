@@ -173,7 +173,7 @@ def place_order():
         )
         order_lead_time = calculate_order_lead_time(order.keys())
 
-        return jsonify({"message": "Ваше замовлення прийнято", "id": new_order_id, "leadTime": order_lead_time}), 201
+        return jsonify(message="Ваше замовлення прийнято", id=new_order_id, leadTime=order_lead_time), 201
 
     except Exception:
         logger.exception("Order not processed")
@@ -191,10 +191,9 @@ def like_dish(dish_id: int):
             logger.error("Could not update dish views.")
 
         return jsonify(success=True), 200
-
     except Exception:
         logger.exception("Like update error")
-        return jsonify(success=False), 400
+        return jsonify(success=False), 500
 
 
 @users_bp.route('/api/coupon/<string:coupon_code>', methods=['POST'])

@@ -28,7 +28,7 @@ export default function ProductCard(props) {
 
   const addLikeToDish = async () => {
     try {
-      const data = await sendToServer(`api/dishes/${code}/like`, null, "POST");
+      const data = await sendToServer(`api/dishes/${code}/like`, null, "PATCH");
       setLikeDish(false);
     } catch (error) {
       if (error?.status === 401) {

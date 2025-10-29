@@ -1,9 +1,9 @@
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey
-from sqlalchemy.types import DateTime, JSON
+from sqlalchemy import ForeignKey, DateTime, JSON
 
 from app.extensions import db, logger, safe_commit
+from app.utils import generate_coupon_code
 
 
 class User(db.Model):
@@ -55,7 +55,7 @@ class Category(db.Model):
         order_list: list of category names in the desired order.
         If a category name doesn't exist, it will be created.
         """
-        existing_names = {cat.name for cat in db.session.query(cls.name).all()}
+        existing_names = {name for (name,) in db.session.query(cls.name).all()}
 
         for order, name in enumerate(categories, start=1):
             if name in existing_names:
@@ -239,14 +239,14 @@ class Coupon(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     code: Mapped[str] = mapped_column(db.String(20), unique=True)
     discount_value: Mapped[int] = mapped_column(default=0)
-    active: Mapped[bool] = mapped_column(default=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
 
     user: Mapped['User'] = relationship('User', back_populates='coupons')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Coupon {self.code}>"
 
     def use_coupon(self, user_id: int) -> tuple[bool, int]:
@@ -257,16 +257,16 @@ class Coupon(db.Model):
             (bool, int): A tuple indicating whether the coupon was successfully used
                          and the discount value to apply.
         """
-        if not self.active:
+        if not self.is_active:
             logger.warning(f"Coupon {self.code} is inactive.")
             return False, 0
 
-        if self.expires_at and datetime.utcnow() >= self.expires_at:
+        if self.expires_at and datetime.utcnow() > self.expires_at:
             logger.warning(f"Coupon {self.code} has expired.")
             return False, 0
 
         self.user_id = user_id
-        self.active = False
+        self.is_active = False
 
         if not safe_commit():
             logger.error(f"Failed to commit coupon usage for {self.code}.")

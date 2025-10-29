@@ -40,7 +40,7 @@ export default function DishCategoryEditor() {
 
   const updateCategories = async (categories) => {
     try {
-      const { data } = await sendToServer('admin/api/category/update', { categories }, 'POST');
+      const { data } = await sendToServer('admin/api/category/update', { categories }, 'PATCH');
       toast.success(data.message || 'Категорії оновлено');
       setReloadTrigger((prev) => prev + 1);
     } catch (error) {
