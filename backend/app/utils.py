@@ -3,6 +3,8 @@ from PIL import Image
 import uuid
 from collections.abc import Iterable
 import enum
+import secrets
+import string
 
 from config import DISCOUNT_TIERS, DISH_PREP_TIME
 from app.extensions import logger
@@ -106,3 +108,9 @@ def resize_and_save_image(file_stream, upload_folder: str, max_width=1000) -> st
     except Exception:
         logger.exception("Error saving image")
         return ''
+
+
+def generate_coupon_code(length=10):
+    """Generate a secure random coupon code."""
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(secrets.choice(chars) for _ in range(length))

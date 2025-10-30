@@ -1,8 +1,10 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies, unset_jwt_cookies
+from sqlalchemy import or_
 
 from .models import Staff, SalesSummary, DishesStats, AdminNotification
-from app.blueprints.users.models import Order, Category, Dish
+from app.blueprints.users.models import Order, Category, Dish, Coupon
 from app.extensions import logger, db, cache
 from werkzeug.utils import secure_filename
 from app.utils import is_allowed_file, validate_image, resize_and_save_image
@@ -334,4 +336,65 @@ def mark_notification_as_read(notification_id: int):
         logger.exception("Error marking notification as read")
         return jsonify(message=f"Помилка оновлення сповіщення:{notification_id}"), 400
 
+
+@admin_bp.route('/api/coupons', methods=['GET', 'POST'])
+@jwt_required()
+def manage_coupons():
+    claims = get_jwt()
+    if claims.get("role") != "staff":
+        return jsonify(message="Access Forbidden: Staff only"), 403
+
+    if request.method == 'GET':
+        try:
+            # Fetch only active and not expired coupons
+            active_coupons = (
+                Coupon.query
+                .filter(
+                    Coupon.is_active.is_(True),
+                    or_(
+                        Coupon.expires_at.is_(None),
+                        Coupon.expires_at >= datetime.utcnow()
+                    )
+                )
+                .all()
+            )
+            return jsonify([coupon.to_dict() for coupon in active_coupons]), 200
+        except Exception:
+            logger.exception('Get coupons error')
+            return jsonify(message='Помилка при завантаженні купонів'), 400
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        try:
+            coupon_id = Coupon.create_coupon(data)
+            return jsonify(message=f'Додано купон id:{coupon_id}'), 201
+        except Exception:
+            logger.exception('Failed to create coupon')
+            return jsonify(message='Помилка при створені купона'), 400
+
+
+@admin_bp.route('/api/coupons/<int:coupon_id>', methods=['DELETE'])
+@jwt_required()
+def deactivate_coupon(coupon_id):
+    claims = get_jwt()
+    if claims.get("role") != "staff":
+        return jsonify(message="Access Forbidden: Staff only"), 403
+
+    try:
+        success = Coupon.deactivate_coupon(coupon_id)
+        if not success:
+            logger.error(f"Failed to deactivate coupon: {coupon_id}")
+            return jsonify(message="Помилка деактивації купона"), 500
+
+        logger.info(f"Coupon {coupon_id} successfully deactivated.")
+        return jsonify(message=f"Купон id:{coupon_id} деактивовано"), 200
+
+    except ValueError:
+        # Coupon not found
+        logger.warning(f"Coupon {coupon_id} not found.")
+        return jsonify(message="Купон не знайдено"), 404
+
+    except Exception:
+        logger.exception(f"Unexpected error deactivating coupon {coupon_id}")
+        return jsonify(message="Сталася помилка при деактивації купона"), 400
 

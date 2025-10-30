@@ -256,6 +256,35 @@ class Coupon(db.Model):
     def __repr__(self) -> str:
         return f"<Coupon {self.code}>"
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "code": self.code,
+            "discount_value": self.discount_value,
+            "expires_at": self.expires_at.strftime("%d-%m-%Y") if self.expires_at else None,
+        }
+
+    @classmethod
+    def create_coupon(cls, data: dict) -> int:
+        expires_at = None
+        if data.get('expires_at'):
+            try:
+                expires_at = datetime.strptime(data['expires_at'], "%d-%m-%Y")
+            except ValueError:
+                logger.warning(f"Invalid date format for expires_at: {data['expires_at']}")
+                expires_at = None
+        new_coupon = cls(
+            code=data.get('code') or generate_coupon_code(),
+            discount_value=data.get('discount_value', 0),
+            is_active=True,
+            expires_at=expires_at,
+        )
+        db.session.add(new_coupon)
+        if not safe_commit():
+            logger.error("Could not add coupon.")
+            return 0
+        return new_coupon.id
+
     def use_coupon(self, user_id: int) -> tuple[bool, int]:
         """
         Marks the coupon as used by the given user if it is active and not expired.
@@ -280,4 +309,17 @@ class Coupon(db.Model):
             return False, 0
 
         return True, self.discount_value
+
+    @classmethod
+    def deactivate_coupon(cls, coupon_id: int) -> bool:
+        coupon = db.session.get(cls, coupon_id)
+        if not coupon:
+            raise ValueError("Coupon not found")
+        coupon.is_active = False
+        if not safe_commit():
+            logger.error("Could not deactivate coupon.")
+            return False
+
+        return True
+
 
