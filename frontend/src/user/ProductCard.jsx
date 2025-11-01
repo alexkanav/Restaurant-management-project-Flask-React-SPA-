@@ -13,13 +13,14 @@ import { imgFolder } from '../../config.json';
 export default function ProductCard(props) {
   const { code, name, description, price, image_link, likes, isPop, isRec, extras} = props;
   const { order, updateItem } = useOrder();
-  const [likeDish, setLikeDish] = useState(true);
+  const [likeDish, setLikeDish] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   const currentDish = order[code];
 
-  const handleProductQuantity = (event, code, price) => {
-    updateItem(code, {name: name, quantity: event.target.value, price: price, additions: {}});
+  const handleProductQuantity = (event) => {
+    const quantity = event.target.value;
+    updateItem(code, { name, quantity, price, additions: {} });
   };
 
   const handleShowDetails = () => {
@@ -28,13 +29,14 @@ export default function ProductCard(props) {
 
   const addLikeToDish = async () => {
     try {
-      const data = await sendToServer(`api/dishes/${code}/like`, null, "PATCH");
-      setLikeDish(false);
+      const { data }  = await sendToServer(`api/dishes/${code}/like`, null, "PATCH");
+      setLikeDish(true);
+      toast.success(data.message || "Додано вподобання");
     } catch (error) {
       if (error?.status === 401) {
         toast.error("Спочатку замовте страву.");
       } else {
-        console.error('Error liking dish:', error);
+        toast.error(error.message || "Вподобання не додано");
       }
     }
   };
@@ -55,22 +57,14 @@ export default function ProductCard(props) {
               <img className="d_icon" src={star} alt="Рекомендуємо" />
             )}
 
-            {likeDish ? (
-              <>
-                <img
-                  className="d_icon_LM"
-                  src={likeW}
-                  alt="Лайк"
-                  onClick={addLikeToDish}
-                />
-                <span className="num_like_menu">{likes}</span>
-              </>
-            ) : (
-              <>
-                <img className="d_icon_LM" src={likeB} alt="Лайк" />
-                <span className="num_like_menu">{likes + 1}</span>
-              </>
-            )}
+            <img
+              className="d_icon_LM"
+              src={likeDish ? likeB : likeW}
+              alt="Лайк"
+              onClick={!likeDish ? addLikeToDish : undefined}
+              style={{ cursor: !likeDish ? 'pointer' : 'default' }}
+            />
+            <span className="num_like_menu">{likes + (likeDish ? 1 : 0)}</span>
           </div>
 
           <div className="description-collapsed">{description}</div>
@@ -103,7 +97,7 @@ export default function ProductCard(props) {
       </button>
 
       {showDetails && (
-        <div>
+        <div className="dish-details">
           <img
             src={`${imgFolder}${image_link}`}
             alt={name}

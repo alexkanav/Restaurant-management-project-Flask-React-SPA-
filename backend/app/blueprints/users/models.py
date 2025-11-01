@@ -76,8 +76,7 @@ class Category(db.Model):
 class Dish(db.Model):
     __tablename__ = 'dishes'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    code: Mapped[int] = mapped_column(unique=True)
+    code: Mapped[int] = mapped_column(primary_key=True)
     name_en: Mapped[str] = mapped_column(db.String(30))
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
     is_popular: Mapped[bool] = mapped_column(default=False)
@@ -91,6 +90,7 @@ class Dish(db.Model):
 
     extras: Mapped[list["DishExtra"]] = relationship(back_populates="dish")
     category: Mapped["Category"] = relationship(back_populates="dishes")
+    like_rel: Mapped[list["DishLike"]] = relationship(back_populates="dish")
 
     def __repr__(self):
         return f"<Dish {self.code} name={self.name_ua}>"
@@ -126,11 +126,33 @@ class Dish(db.Model):
         return dish.code
 
     @classmethod
-    def increment_likes(cls, dish_code: int) -> bool:
-        rows = cls.query.filter_by(code=dish_code).update({cls.likes: cls.likes + 1})
-        if not rows or not safe_commit():
-            return False
-        return True
+    def like_dish(cls, user_id: int, dish_code: int) -> tuple[bool, str]:
+        dish = cls.query.get(dish_code)
+        if not dish:
+            return False, "Страву не знайдено"
+
+        # Prevent duplicate likes
+        if DishLike.query.filter_by(user_id=user_id, dish_code=dish_code).first():
+            return False, "Ви вже оцінювали цей продукт"
+
+        dish.likes += 1
+        dish.like_rel.append(DishLike(user_id=user_id, dish_code=dish_code))
+
+        if not safe_commit():
+            logger.error("Failed to like dish")
+            return False, "Вподобання не додано"
+
+        logger.info(f"User {user_id} liked dish {dish_code}")
+        return True, "Вподобання додано"
+
+
+class DishLike(db.Model):
+    __tablename__ = "dish_likes"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    dish_code: Mapped[int] = mapped_column(ForeignKey('dishes.code'), primary_key=True)
+
+    dish: Mapped["Dish"] = relationship(back_populates="like_rel")
 
 
 class DishExtra(db.Model):
@@ -140,7 +162,7 @@ class DishExtra(db.Model):
     name: Mapped[str] = mapped_column(db.String(20), unique=True)
     name_ua: Mapped[str] = mapped_column(db.String(20))
     price: Mapped[int] = mapped_column(default=0)
-    dish_id: Mapped[int] = mapped_column(ForeignKey('dishes.id'))
+    dish_code: Mapped[int] = mapped_column(ForeignKey('dishes.code'))
 
     dish: Mapped["Dish"] = relationship(back_populates="extras")
 

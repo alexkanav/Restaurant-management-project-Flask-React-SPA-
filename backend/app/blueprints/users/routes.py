@@ -1,4 +1,4 @@
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt, set_access_cookies
+from flask_jwt_extended import create_access_token, jwt_required, set_access_cookies, get_jwt_identity
 from flask import Blueprint, request, jsonify
 
 from .models import User, Dish, Order, Comment, Category, Coupon
@@ -26,7 +26,7 @@ def create_user():
 
         response = jsonify(user_id=user_id)
         set_access_cookies(response, access_token)
-        return response, 200
+        return response, 201
 
     except Exception:
         logger.exception("User not created")
@@ -36,16 +36,14 @@ def create_user():
 @users_bp.route('/api/users/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
-    claims = get_jwt()
-    current_user_id = claims.get("id")
+    current_user_id = int(get_jwt_identity())
     return jsonify(id=current_user_id), 200
 
 
 @users_bp.route('/api/users/discount', methods=['GET'])
 @jwt_required()
 def get_discount():
-    claims = get_jwt()
-    current_user_id = claims.get("id")
+    current_user_id = int(get_jwt_identity())
 
     if not current_user_id:
         return jsonify(message="Користувач не авторизований"), 401
@@ -70,7 +68,7 @@ def get_discount():
 @cache.cached(timeout=3600, key_prefix='get_comments')
 def get_comments():
     try:
-        data = Comment.query.order_by(Comment.id.desc()).limit(10).all()[::-1]
+        data = Comment.query.order_by(Comment.id.desc()).limit(10).all()
         comments = [
             {
                 "id": c.id,
@@ -91,8 +89,7 @@ def get_comments():
 @jwt_required()
 @limiter.limit("5 per minute")
 def send_comment():
-    claims = get_jwt()
-    user_id = claims.get("id")
+    user_id = int(get_jwt_identity())
 
     try:
         data = request.get_json()
@@ -100,6 +97,8 @@ def send_comment():
             raise ValueError("No comment data received")
         name = data.get('username')
         message = data.get('textarea')
+        if not name or not message:
+            return jsonify(message="Будь ласка, заповніть усі поля"), 400
         Comment.add_comment(user_id, name, message)
 
         # Invalidate the cache for get_comments
@@ -133,7 +132,6 @@ def get_menu():
             popular.append(dish.code)
         if dish.is_recommended:
             recommended.append(dish.code)
-
     categories = [
                 {category.name: [dish.code for dish in category.dishes if dish.price != 0]}
                 for category in Category.query.order_by(Category.order.asc()).all()
@@ -149,8 +147,7 @@ def get_menu():
 @users_bp.route('/api/order', methods=['POST'])
 @jwt_required()
 def place_order():
-    claims = get_jwt()
-    user_id = claims.get("id")
+    user_id = int(get_jwt_identity())
 
     try:
         order = request.get_json()
@@ -182,22 +179,24 @@ def place_order():
 
 @users_bp.route('/api/dishes/<int:dish_code>/like', methods=['PATCH'])
 @jwt_required()
-@limiter.limit("5 per minute")
 def like_dish(dish_code: int):
+    current_user_id = int(get_jwt_identity())
+
     try:
-        if not Dish.increment_likes(dish_code):
-            return jsonify(success=False), 400
-        return jsonify(success=True), 200
+        success, message = Dish.like_dish(current_user_id, dish_code)
+        code = 200 if success else 400
+
+        return jsonify(message=message), code
+
     except Exception:
-        logger.exception("Like update error")
-        return jsonify(success=False), 500
+        logger.exception(f"Like update error, dish_code:{dish_code}")
+        return jsonify(message="Помилка"), 500
 
 
 @users_bp.route('/api/coupon/<string:coupon_code>', methods=['POST'])
 @jwt_required()
 def get_coupon(coupon_code: str):
-    claims = get_jwt()
-    user_id = claims.get("id")
+    user_id = int(get_jwt_identity())
 
     try:
         coupon = Coupon.query.filter_by(code=coupon_code).first()
