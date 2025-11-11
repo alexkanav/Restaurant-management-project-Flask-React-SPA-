@@ -29,42 +29,45 @@ export default function AddOnMenu(props) {
   };
 
   return (
-    <div
-      className="nav-scroller-add"
-      ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      {Object.keys(addOnMenu).map((addon) => {
-        const isSelected = !!currentDish?.additions?.[addon];
-        const isAddOnApplied = Number(currentDish?.quantity) > 0
+    <div className="ext-note">
+      Додати:
+      <div
+        className="nav-scroller-add"
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        {Object.keys(addOnMenu).map((addon) => {
+          const isSelected = !!currentDish?.additions?.[addon];
+          const isAddOnApplied = Number(currentDish?.quantity) > 0
 
-        const className = [
-          'nav-scr-add',
-          isAddOnApplied ? 'add-dg-col' : '',
-          isSelected ? 'active-button' : '',
-        ]
-          .filter(Boolean)
-          .join(' ');
+          const className = [
+            'nav-scr-add',
+            isAddOnApplied ? 'add-dg-col' : '',
+            isSelected ? 'active-button' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
 
-        return (
-          <button
-            key={addon}
-            className={className}
-            onClick={
-              isSelected
-                ? undefined
-                : () => selectAddition(dishId, addon, addOnMenu[addon])
-            }
-          >
-            <div className="card-name-add">{addon}</div>
-            <div className="card-price-add">{addOnMenu[addon]} грн.</div>
-          </button>
-        );
+          return (
+            <button
+              key={addon}
+              className={className}
+              onClick={
+                isSelected
+                  ? undefined
+                  : () => selectAddition(dishId, addon, addOnMenu[addon])
+              }
+            >
+              <div className="card-name-add">{addon}</div>
+              <div className="card-price-add">{addOnMenu[addon]} грн.</div>
+            </button>
+          );
 
-      })}
+        })}
+      </div>
     </div>
   );
 }

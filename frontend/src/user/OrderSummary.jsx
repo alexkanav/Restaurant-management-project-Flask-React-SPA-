@@ -92,10 +92,11 @@ export default function OrderSummary({ goTo }) {
             </div>
             <div className="text-block">(Час виконання розраховується автоматично)</div>
             <hr />
+            <h3>Залиште свій відгук</h3>
 
             <div className="btn-block">
                 <button className="cancel-btn" onClick={() => navigate('/')}>Вийти</button>
-                <button className="apply-btn" onClick={() => navigate('/feedback')}>Залишити відгук</button>
+                <button className="apply-btn" onClick={() => navigate('/feedback')}>Відгук</button>
             </div>
           </div>
           </div>

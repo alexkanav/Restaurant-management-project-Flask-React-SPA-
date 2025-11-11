@@ -44,7 +44,7 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
               <tr>
                 <th>#</th>
                 <th>Код</th>
-                <th>Знижка %</th>
+                <th>Знижка, %</th>
                 <th>Термін дії</th>
                 <th>Дія</th>
               </tr>
@@ -52,11 +52,11 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
             <tbody>
               {coupons.map((coupon) => (
                 <tr key={coupon.id}>
-                  <td>{coupon.id}</td>
-                  <td>{coupon.code}</td>
-                  <td>{coupon.discount_value}</td>
-                  <td>{coupon.expires_at || "Безстроковий"}</td>
-                  <td>
+                  <td data-label="#">{coupon.id}</td>
+                  <td data-label="Код">{coupon.code}</td>
+                  <td data-label="Знижка, %">{coupon.discount_value}</td>
+                  <td data-label="Термін дії">{coupon.expires_at || "Безстроковий"}</td>
+                  <td data-label="Дія">
                     <button
                       className="btn-delete"
                       onClick={() => deactivateCoupon(coupon.id)}
@@ -105,7 +105,7 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
                 checked={isExpires}
                 onChange={() => setIsExpires(true)}
               />
-              З терміном завершення
+              З терміном дії
             </label>
           </div>
 

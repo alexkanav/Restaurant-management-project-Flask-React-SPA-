@@ -58,9 +58,8 @@ export default function OrderCard({ selectedOrder, setSelectedOrder }) {
                 <span>До сплати:</span>
                 <span> {selectedOrder.final_cost} грн.</span>
               </div>
-
+              <div className="price">{selectedOrder.final_cost}<sub> грн.</sub></div>
               <div className="checkout--footer">
-                <div className="price">{selectedOrder.final_cost}<sub> грн.</sub></div>
                 <button  onClick={() => setSelectedOrder(null)} className="cancel-btn">Скасувати</button>
                 <button onClick={finalizeOrder} className="apply-btn">Підтверджую</button>
               </div>

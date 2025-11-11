@@ -109,18 +109,18 @@ export default function Statistics() {
     return <Spinner />;
 
   return (
-    <div className="statistics-content">
-      <div className="chart-block">
+    <div className="dashboard-content">
+      <div className="dashboard-block">
         <div className="chart-title">Денний дохід та середній чек</div>
         <Chart chartType="bar" labels={salesData.date} datasets={salesSummaryChart} />
       </div>
 
-      <div className="chart-block">
+      <div className="dashboard-block">
         <div className="chart-title">Частота відвідування клієнтів</div>
         <Chart chartType="line" labels={salesData.date} datasets={visitFrequencyChart} />
       </div>
 
-      <div className="chart-block">
+      <div className="chart-pie">
         <div className="chart-title">Популярні страви</div>
         <Chart chartType="pie" labels={dishesData.dishes} datasets={dishesStatsChart} />
       </div>

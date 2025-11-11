@@ -42,46 +42,56 @@ export default function ProductCard(props) {
   };
 
   return (
-    <div className="card-wrap">
-      <div className="card-box">
-        <div className="card-cont">
-          <div className="card-name">{name}</div>
-          <div className="card-price">
-            {price} грн.
+  <div className={`product-card ${showDetails ? "details-open" : ""}`}>
+    <div className="product-image">
+      <img
+        src={`${imgFolder}${image_link}`}
+        loading="lazy"
+        onClick={handleShowDetails}
+        alt={name}
+      />
 
-            {isPop && (
-              <img className="d_icon" src={love} alt="Популярне" />
-            )}
+    </div>
+    <div className="product-details">
+      <h2 className="product-title">{name}</h2>
+      <div className="card-price">
+        {price} грн.
 
-            {isRec && (
-              <img className="d_icon" src={star} alt="Рекомендуємо" />
-            )}
+        {isPop && (
+          <img className="card-icon" src={love} alt="Популярне" />
+        )}
 
-            <img
-              className="d_icon_LM"
-              src={likeDish ? likeB : likeW}
-              alt="Лайк"
-              onClick={!likeDish ? addLikeToDish : undefined}
-              style={{ cursor: !likeDish ? 'pointer' : 'default' }}
-            />
-            <span className="num_like_menu">{likes + (likeDish ? 1 : 0)}</span>
-          </div>
-
-          <div className="description-collapsed">{description}</div>
-        </div>
+        {isRec && (
+          <img className="card-icon" src={star} alt="Рекомендуємо" />
+        )}
 
         <img
-          className="card-image"
-          src={`${imgFolder}${image_link}`}
-          loading="lazy"
-          onClick={handleShowDetails}
-          alt={name}
+          className="like-icon"
+          src={likeDish ? likeB : likeW}
+          alt="Лайк"
+          onClick={!likeDish ? addLikeToDish : undefined}
+          style={{ cursor: !likeDish ? 'pointer' : 'default' }}
         />
+        <span className="num-like-menu">{likes + (likeDish ? 1 : 0)}</span>
       </div>
 
+      <p className={`product-description ${!showDetails ? "description-collapsed" : ""}`}>
+        {description}
+      </p>
+
+      {Object.keys(extras).length !== 0 && (
+        <AddOnMenu
+          dishId={code}
+          addOnMenu={extras}
+          dishName={name}
+          currentDish={currentDish}
+        />
+      )}
+
+<div className="product-btn">
       <select
         value={currentDish?.quantity ?? "0"}
-        className={(currentDish?.quantity && currentDish.quantity !== "0") ? "amount-activ" : "amount"}
+        className={`amount ${(currentDish?.quantity && currentDish.quantity !== "0") ? "amount-activ" : ""}`}
         onChange={(event) => {handleProductQuantity(event, code, price)}}
       >
         <option value="0">Замовити</option>
@@ -92,30 +102,17 @@ export default function ProductCard(props) {
         ))}
       </select>
 
-      <button onClick={handleShowDetails}>
+
+      <button className="card-btn"
+        onClick={handleShowDetails}>
         {showDetails ? "приховати" : "показати"}
       </button>
 
-      {showDetails && (
-        <div className="dish-details">
-          <img
-            src={`${imgFolder}${image_link}`}
-            alt={name}
-            onClick={handleShowDetails}
-            style={{ width: '100%', marginTop: '10px' }}
-          />
-          <p>{description}</p>
-        </div>
-      )}
-      {extras && (
-          <AddOnMenu
-              dishId={code}
-              addOnMenu={extras}
-              dishName={name}
-              currentDish={currentDish}
-          />
-      )}
-
     </div>
+</div>
+
+  </div>
+
+
   );
 }

@@ -13,7 +13,8 @@ export default function ProductViewer({ menuCategories, categoryItems, allMenuIt
           <div id={`category_${index}`} className="category-block">
             {categoryName}
           </div>
-          {categoryItems[index].map((code) => {
+          <div className="product-grid">
+            {categoryItems[index].map((code) => {
               return (
                 <ProductCard
                   key={`${categoryName}-${code}`}
@@ -29,6 +30,7 @@ export default function ProductViewer({ menuCategories, categoryItems, allMenuIt
                 />
               );
             })}
+          </div>
         </div>
       ))}
     </>

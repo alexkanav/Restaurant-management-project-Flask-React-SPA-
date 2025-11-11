@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
 import CouponForm from './CouponForm';
-import Spinner from '../components/Spinner';
+import { Spinner } from '../components';
 
 
 export default function CouponManager() {
