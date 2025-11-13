@@ -3,6 +3,9 @@ import { toast } from 'react-toastify';
 import { useOrder } from '../context/OrderContext';
 import { VIEWS } from '../constants/views';
 import { sendToServer } from '../utils/api';
+import mcVisa from '../../static/images/visa-mc.jpg';
+import gPay from '../../static/images/google-pay.png';
+import aPay from '../../static/images/apple-pay.png';
 
 
 export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, userId, loading }) {
@@ -10,6 +13,8 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
   const [couponCode, setCouponCode] = useState("");
   const [couponAccepted, setCouponAccepted] = useState(false);
   const [couponError, setCouponError] = useState(false);
+  const [isCashPayment, setIsCashPayment] = useState(null);
+
   const { order } = useOrder();
 
   const total = order.totalCost ?? 0;
@@ -24,11 +29,11 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
     key => key !== 'table' && key !== 'totalCost'
   );
 
-  const getCoupon = async (e) => {
+  const handleApplyCoupon = async (e) => {
     e.preventDefault(); // prevent page refresh right away
 
     try {
-      const { data } = await sendToServer(`/api/coupon/${couponCode}`, null, "POST");
+      const { data } = await sendToServer(`/api/coupon/${couponCode}`, null, 'POST');
 
       if (data?.discount !== undefined) {
         setCouponPercentage(data.discount);
@@ -47,27 +52,27 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
 
   return (
     <>
-      <div className='category-block'> Перевірте та підтвердіть ваше замовлення!</div>
+      <div className='category-block'> Перевірте замовлення та оберіть спосіб оплати!</div>
       <div className='master-container'>
         <div className="content-block">
           <div className="order-card-body">
             <div className="order-table-num">Ваш стіл  {order.table}</div>
 
             <div className="summary-card-description">
-              {dishKeys.map((dishId) => {
-                const dish = order[dishId];
+              {dishKeys.map((id) => {
+                const { name, quantity, price, additions } = order[id];
                 return (
-                  <div className="order-card-item" key={dishId}>
+                  <div className="order-card-item" key={id}>
                     <div className="details">
-                      <span>{dish.name}:</span>
-                      <span><strong>{dish.quantity}</strong> x {dish.price} грн.</span>
+                      <span>{name}:</span>
+                      <span><strong>{quantity}</strong> x {price} грн.</span>
                     </div>
 
-                    {dish.additions && Object.keys(dish.additions).length > 0 && (
+                    {additions && Object.keys(additions).length > 0 && (
                       <div className="order-additions">
                         <span>- додатки: (
-                          {Object.keys(dish.additions).map((addName) => (
-                            <span key={addName}>{addName}:{dish.additions[addName]} грн., </span>
+                          {Object.keys(additions).map((addName) => (
+                            <span key={addName}>{addName}:{additions[addName]} грн., </span>
                           ))}
                         )</span>
                       </div>
@@ -80,13 +85,13 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
             <div className="order-card-price">Сума: {order.totalCost} грн.</div>
 
             <div className="board-title">Маєте купон на знижку?</div>
-            <form className="coupon" onSubmit={getCoupon}>
+            <form className="coupon" onSubmit={handleApplyCoupon}>
               <input
                 id="coupon"
                 type="text"
                 placeholder="Ваш купон ..."
                 className={`input_field ${couponError ? 'error' : ''}`}
-                value={couponAccepted ? `Використано: ${couponCode}` : couponCode}
+                value={couponAccepted ? `Задіяно: ${couponCode}` : couponCode}
                 minLength={10}
                 maxLength={10}
                 required
@@ -119,12 +124,40 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
               <span>{format(payable)} грн.</span>
             </div>
 
+            <div className="board-title">Оберіть, як вам зручно оплатити</div>
+            <div className="payment-method">
+              <div className="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={isCashPayment === true}
+                    onChange={() => setIsCashPayment(true)}
+                  />
+                  Готівка
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={isCashPayment === false}
+                    onChange={() => setIsCashPayment(false)}
+                  />
+                  <span>
+                    <img loading="lazy" className="icon-img" src={mcVisa} alt="MC/Visa" />
+                    <img loading="lazy" className="icon-img" src={gPay} alt="Google Pay" />
+                    <img loading="lazy" className="icon-img" src={aPay} alt="Apple Pay" />
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="price">{format(payable)}<sub> грн.</sub></div>
             <div className="checkout--footer">
-              <div className="price">{format(payable)}<sub> грн.</sub></div>
-              <button onClick={() => goTo(VIEWS.PRODUCT)}className="cancel-btn">Змінити</button>
+              <button onClick={() => goTo(VIEWS.PRODUCT)}className="cancel-btn">Скасувати</button>
               <button
                 onClick={() => postOrder(loyaltyPercentage, couponPercentage, payable)}
-                disabled={loading}
+                disabled={loading || isCashPayment === null}
                 className="apply-btn"
               >
                 {loading ? "Обробка..." : "Підтверджую"}
