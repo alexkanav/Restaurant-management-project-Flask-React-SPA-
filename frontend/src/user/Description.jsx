@@ -1,7 +1,4 @@
-import { description } from '../../config.json';
-
-
-export default function Description() {
+export default function Description({ description }) {
 
   return (
     <div className="description">

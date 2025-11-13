@@ -26,7 +26,7 @@ export async function login(credentials, setUserName, setFieldErrors) {
   }
 
   try {
-    const { data } = await sendToServer('admin/api/auth/login', credentials, 'POST');
+    const { data } = await sendToServer('/admin/api/auth/login', credentials, 'POST');
     toast.success('Ви увійшли успішно!');
     setUserName(data.username);
   } catch (error) {
@@ -52,7 +52,7 @@ export async function register(credentials, setFieldErrors) {
 
   try {
     const { confirmPassword, ...dataToSend } = credentials;
-    const { data } = await sendToServer('admin/api/auth/register', dataToSend, 'POST');
+    const { data } = await sendToServer('/admin/api/auth/register', dataToSend, 'POST');
     toast.success(data.message || 'Успішна реєстрація!');
     return true;
   } catch (error) {
@@ -62,7 +62,7 @@ export async function register(credentials, setFieldErrors) {
 
 export async function checkAuth(setUserName) {
   try {
-    const { data } = await sendToServer('admin/api/auth/session', null, 'GET');
+    const { data } = await sendToServer('/admin/api/auth/session', null, 'GET');
     setUserName(data.username);
   } catch (error) {
     if (error?.status === 401) {
@@ -75,7 +75,7 @@ export async function checkAuth(setUserName) {
 
 export async function logout(setUserName) {
   try {
-    const { data } = await sendToServer('admin/api/auth/logout', null, 'GET');
+    const { data } = await sendToServer('/admin/api/auth/logout', null, 'GET');
     toast.success(data.message || 'Ви вийшли з системи.');
     setUserName('');
   } catch (error) {
@@ -99,7 +99,7 @@ export async function fetchOrCreateUser() {
 
 export async function userExists() {
   try {
-    const { data } = await sendToServer("api/users/me", null, "GET");
+    const { data } = await sendToServer('/api/users/me', null, 'GET');
     return data.id;
   } catch (error) {
     if (error?.status === 401) {
@@ -112,7 +112,7 @@ export async function userExists() {
 
 export async function createUser() {
   try {
-    const { data } = await sendToServer("api/users", null, "POST");
+    const { data } = await sendToServer('/api/users', null, 'POST');
     return data.user_id;
   } catch (error) {
     toast.error(error.message || "Помилка реєстрації нового користувача.");

@@ -14,7 +14,7 @@ export default function CouponManager() {
     const fetchCoupons = async () => {
       try {
         setLoading(true);
-        const { data } = await sendToServer('admin/api/coupons', null, 'GET');
+        const { data } = await sendToServer('/admin/api/coupons', null, 'GET');
         setCoupons(data);
       } catch (error) {
         toast.error(error.message || 'Помилка пошуку купонів');
@@ -28,7 +28,7 @@ export default function CouponManager() {
   const onSubmit = async (coupon_data) => {
     try {
       setLoading(true);
-      const { data } = await sendToServer('admin/api/coupons', coupon_data, 'POST');
+      const { data } = await sendToServer('/admin/api/coupons', coupon_data, 'POST');
       toast.success(data.message || 'Додано новий купон');
       setReloadTrigger(prev => prev + 1);
     } catch (error) {
@@ -41,7 +41,7 @@ export default function CouponManager() {
   const deactivateCoupon = async (id) => {
     try {
       setLoading(true);
-      const { data } = await sendToServer(`admin/api/coupons/${id}`, null, 'DELETE');
+      const { data } = await sendToServer(`/admin/api/coupons/${id}`, null, 'DELETE');
       toast.success(data.message || 'Купон деактивовано');
       setReloadTrigger(prev => prev + 1);
     } catch (error) {

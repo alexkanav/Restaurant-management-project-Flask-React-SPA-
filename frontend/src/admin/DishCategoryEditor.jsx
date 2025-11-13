@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
 import { Form, SelectType, InputType, ImageUploader, Spinner } from '../components';
-import { imgFolder, maxDishPrice } from '../../config.json';
+import { config } from '../config';
 
 
 export default function DishCategoryEditor() {
@@ -21,7 +21,7 @@ export default function DishCategoryEditor() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const { data } = await sendToServer('admin/api/menu', null, 'GET');
+        const { data } = await sendToServer('/admin/api/menu', null, 'GET');
 
         if (data?.categories && data?.dishes) {
           setCategories(data.categories);
@@ -40,7 +40,7 @@ export default function DishCategoryEditor() {
 
   const updateCategories = async (categories) => {
     try {
-      const { data } = await sendToServer('admin/api/category/update', { categories }, 'PATCH');
+      const { data } = await sendToServer('/admin/api/category/update', { categories }, 'PATCH');
       toast.success(data.message || 'Категорії оновлено');
       setReloadTrigger((prev) => prev + 1);
     } catch (error) {
@@ -50,7 +50,7 @@ export default function DishCategoryEditor() {
 
   const sendNewDish = async (dish) => {
     try {
-      const { data } = await sendToServer('admin/api/dish/update', dish, 'POST');
+      const { data } = await sendToServer('/admin/api/dish/update', dish, 'POST');
       toast.success(data.message || 'Страву оновлено');
       setReloadTrigger((prev) => prev + 1);
     } catch (error) {
@@ -93,7 +93,7 @@ export default function DishCategoryEditor() {
   const dishUpdate = (formData) => {
     const price = Number(formData.price);
 
-    if (isNaN(price) || price < 0 || price > maxDishPrice) {
+    if (isNaN(price) || price < 0 || price > config.MAX_DISH_PRICE) {
       toast.error('Ви вказали некоректну ціну.');
       return;
     }
@@ -180,8 +180,8 @@ export default function DishCategoryEditor() {
               className="update-image"
               src={
                 newImage
-                  ? `${imgFolder}${newImage}`
-                  : `${imgFolder}${dishes[selectedDish]?.image_link}`
+                  ? `${config.UPLOADED_IMAGES_FOLDER}${newImage}`
+                  : `${config.UPLOADED_IMAGES_FOLDER}${dishes[selectedDish]?.image_link}`
               }
               loading="lazy"
               alt={dishes[selectedDish]?.name_ua || 'Зображення страви'}

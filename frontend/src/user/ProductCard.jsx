@@ -7,7 +7,7 @@ import star from '../assets/images/star.svg';
 import likeW from '../assets/images/likeW.jpg';
 import likeB from '../assets/images/likeB.jpg';
 import { useOrder } from '../context/OrderContext';
-import { imgFolder } from '../../config.json';
+import { config } from '../config';
 
 
 export default function ProductCard(props) {
@@ -29,7 +29,7 @@ export default function ProductCard(props) {
 
   const addLikeToDish = async () => {
     try {
-      const { data }  = await sendToServer(`api/dishes/${code}/like`, null, "PATCH");
+      const { data }  = await sendToServer(`/api/dishes/${code}/like`, null, 'PATCH');
       setLikeDish(true);
       toast.success(data.message || "Додано вподобання");
     } catch (error) {
@@ -42,77 +42,72 @@ export default function ProductCard(props) {
   };
 
   return (
-  <div className={`product-card ${showDetails ? "details-open" : ""}`}>
-    <div className="product-image">
-      <img
-        src={`${imgFolder}${image_link}`}
-        loading="lazy"
-        onClick={handleShowDetails}
-        alt={name}
-      />
-
-    </div>
-    <div className="product-details">
-      <h2 className="product-title">{name}</h2>
-      <div className="card-price">
-        {price} грн.
-
-        {isPop && (
-          <img className="card-icon" src={love} alt="Популярне" />
-        )}
-
-        {isRec && (
-          <img className="card-icon" src={star} alt="Рекомендуємо" />
-        )}
-
+    <div className={`product-card ${showDetails ? "details-open" : ""}`}>
+      <div className="product-image">
         <img
-          className="like-icon"
-          src={likeDish ? likeB : likeW}
-          alt="Лайк"
-          onClick={!likeDish ? addLikeToDish : undefined}
-          style={{ cursor: !likeDish ? 'pointer' : 'default' }}
+          src={`${config.UPLOADED_IMAGES_FOLDER}${image_link}`}
+          loading="lazy"
+          onClick={handleShowDetails}
+          alt={name}
         />
-        <span className="num-like-menu">{likes + (likeDish ? 1 : 0)}</span>
+
       </div>
+      <div className="product-details">
+        <h2 className="product-title">{name}</h2>
+        <div className="card-price">
+          {price} грн.
 
-      <p className={`product-description ${!showDetails ? "description-collapsed" : ""}`}>
-        {description}
-      </p>
+          {isPop && (
+            <img className="card-icon" src={love} alt="Популярне" />
+          )}
 
-      {Object.keys(extras).length !== 0 && (
-        <AddOnMenu
-          dishId={code}
-          addOnMenu={extras}
-          dishName={name}
-          currentDish={currentDish}
-        />
-      )}
+          {isRec && (
+            <img className="card-icon" src={star} alt="Рекомендуємо" />
+          )}
 
-<div className="product-btn">
-      <select
-        value={currentDish?.quantity ?? "0"}
-        className={`amount ${(currentDish?.quantity && currentDish.quantity !== "0") ? "amount-activ" : ""}`}
-        onChange={(event) => {handleProductQuantity(event, code, price)}}
-      >
-        <option value="0">Замовити</option>
-        {[...Array(10).keys()].map((num) => (
-          <option key={num + 1} value={num + 1}>
-            {num + 1} порц.
-          </option>
-        ))}
-      </select>
+          <img
+            className="like-icon"
+            src={likeDish ? likeB : likeW}
+            alt="Лайк"
+            onClick={!likeDish ? addLikeToDish : undefined}
+            style={{ cursor: !likeDish ? 'pointer' : 'default' }}
+          />
+          <span className="num-like-menu">{likes + (likeDish ? 1 : 0)}</span>
+        </div>
 
+        <p className={`product-description ${!showDetails ? "description-collapsed" : ""}`}>
+          {description}
+        </p>
 
-      <button className="card-btn"
-        onClick={handleShowDetails}>
-        {showDetails ? "приховати" : "показати"}
-      </button>
+        {Object.keys(extras).length !== 0 && (
+          <AddOnMenu
+            dishId={code}
+            addOnMenu={extras}
+            dishName={name}
+            currentDish={currentDish}
+          />
+        )}
 
+        <div className="product-btn">
+          <select
+            value={currentDish?.quantity ?? "0"}
+            className={`amount ${(currentDish?.quantity && currentDish.quantity !== "0") ? "amount-activ" : ""}`}
+            onChange={(event) => {handleProductQuantity(event, code, price)}}
+          >
+            <option value="0">Замовити</option>
+            {[...Array(10).keys()].map((num) => (
+              <option key={num + 1} value={num + 1}>
+                {num + 1} порц.
+              </option>
+            ))}
+          </select>
+
+          <button className="card-btn"
+            onClick={handleShowDetails}>
+            {showDetails ? "приховати" : "показати"}
+          </button>
+        </div>
+      </div>
     </div>
-</div>
-
-  </div>
-
-
   );
 }

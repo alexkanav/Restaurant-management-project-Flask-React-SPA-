@@ -24,7 +24,7 @@ export default function Dashboard({ userName, setUserName, goTo }) {
   useEffect(() => {
     const fetchNotificationCount = async () => {
       try {
-        const { data } = await sendToServer("admin/api/notification/count", null, "GET");
+        const { data } = await sendToServer('/admin/api/notification/count', null, 'GET');
         setNotificationCount(data.unread_notif_number || 0);
       } catch (error) {
         console.error("Error fetching notifications:", error);

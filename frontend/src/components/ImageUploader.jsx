@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { baseApiUrl } from '../../config.json';
+import { config } from '../config';
 
 
 export default function ImageUploader({ setNewImage }) {
@@ -20,7 +20,7 @@ export default function ImageUploader({ setNewImage }) {
       const formData = new FormData();
       formData.append('image', image);
 
-      const response = await fetch(`${baseApiUrl}admin/api/upload`, {
+      const response = await fetch(`${config.API_URL}/admin/api/upload`, {
         method: 'POST',
         credentials: 'include',
         body: formData,

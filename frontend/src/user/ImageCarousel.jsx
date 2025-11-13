@@ -1,9 +1,9 @@
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import { Carousel } from 'react-responsive-carousel';
-import { carouselImages } from '../../config.json';
+import { config } from '../config';
 
 
-export default function ImageCarousel() {
+export default function ImageCarousel({ carouselImages }) {
 
   return (
     <>
@@ -15,7 +15,7 @@ export default function ImageCarousel() {
       >
         {carouselImages.map((img, index) => (
           <div key={img.link}>
-            <img src={`/static/images/${img.link}`} alt={img.alt} loading="lazy" />
+            <img src={`${config.ASSETS_IMAGES_FOLDER}${img.link}`} alt={img.alt} loading="lazy" />
             {/* <p className="legend">{img.legend}</p>*/}
           </div>
         ))}

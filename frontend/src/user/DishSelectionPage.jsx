@@ -35,7 +35,7 @@ export default function DishSelectionPage() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const { data } = await sendToServer("api/menu", null, "GET");
+        const { data } = await sendToServer('/api/menu', null, 'GET');
 
         if (data.menu && data.menu.categories && data.menu.dishes) {
           setMenuCategories(data.menu.categories.map((item) => Object.keys(item)[0]));

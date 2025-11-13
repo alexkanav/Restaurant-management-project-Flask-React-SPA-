@@ -57,7 +57,7 @@ export default function OrderSummary({ goTo }) {
      setLoading(true);
 
     try {
-      const { data } = await sendToServer("api/order", {...order, loyaltyPercentage, couponPercentage, payable}, "POST");
+      const { data } = await sendToServer('/api/order', {...order, loyaltyPercentage, couponPercentage, payable}, 'POST');
       setOrderId(data.id);
       setLeadTime(data.leadTime)
       toast.success(data.message || "Замовлення успішно відправлено!");

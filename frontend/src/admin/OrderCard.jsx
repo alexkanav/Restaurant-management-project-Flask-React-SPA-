@@ -5,7 +5,7 @@ import { sendToServer } from '../utils/api';
 export default function OrderCard({ selectedOrder, setSelectedOrder }) {
   const finalizeOrder = async () => {
     try {
-      const { data } = await sendToServer(`admin/api/orders/${selectedOrder.id}/complete`, null, 'POST');
+      const { data } = await sendToServer(`/admin/api/orders/${selectedOrder.id}/complete`, null, 'POST');
       toast.success(data.message || "Замовлення виконано");
       setSelectedOrder(null);
     } catch (error) {
@@ -25,19 +25,19 @@ export default function OrderCard({ selectedOrder, setSelectedOrder }) {
             </div>
             <div className="summary-card-description">
               {Object.keys(selectedOrder.order_details).map((code) => {
-              const dish = selectedOrder.order_details[code];
+              const { name, quantity, price, additions } = selectedOrder.order_details[code];
                 return (
                   <div className="order-card-item" key={code}>
                     <div className="details">
-                      <span>{dish.name}:</span>
-                      <span><strong>{dish.quantity}</strong> x {dish.price} грн.</span>
+                      <span>{name}:</span>
+                      <span><strong>{quantity}</strong> x {price} грн.</span>
                     </div>
 
-                    {dish.additions && Object.keys(dish.additions).length > 0 && (
+                    {additions && Object.keys(additions).length > 0 && (
                       <div className="order-additions">
                         <span>- додатки: (
-                          {Object.keys(dish.additions).map((addName) => (
-                            <span key={addName}>{addName}:{dish.additions[addName]} грн., </span>
+                          {Object.keys(additions).map((addName) => (
+                            <span key={addName}>{addName}:{additions[addName]} грн., </span>
                           ))}
                         )</span>
                       </div>

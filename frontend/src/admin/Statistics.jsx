@@ -11,7 +11,7 @@ export default function Statistics() {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const { data } = await sendToServer("admin/api/statistics", null, "GET");
+        const { data } = await sendToServer('/admin/api/statistics', null, 'GET');
 
         if (data.salesSummary && data.dishesStats) {
           setSalesData({

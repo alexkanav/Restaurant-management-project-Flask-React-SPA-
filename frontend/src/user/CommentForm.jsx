@@ -13,7 +13,7 @@ export default function CommentForm() {
   const handleSubmit = async (formData) => {
     setLoading(true);
     try {
-      const { data } = await sendToServer('api/send-comment', formData, 'POST');
+      const { data } = await sendToServer('/api/send-comment', formData, 'POST');
       toast.success(data.message || 'Дякуємо за відгук!');
       setTimeout(() => navigate('/'), 3000);
     } catch (error) {

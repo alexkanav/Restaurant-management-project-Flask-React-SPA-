@@ -1,10 +1,9 @@
-import { weekdays, contacts, openingHours } from '../../config.json';
 import telegram from '../assets/images/teleg.png';
 import whatsapp from '../assets/images/whatsapp.png';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 
-export default function Contacts() {
+export default function Contacts({ contacts, weekdays, openingHours}) {
   const elementRef = useScrollAnimation();
 
   return (
@@ -18,7 +17,7 @@ export default function Contacts() {
             <p>Всі питання та пропозиції вирішуються з адміністратором</p>
             <img className="cont-img" src={telegram} alt="Telegram" />
             <img className="cont-img" src={whatsapp} alt="WhatsApp" />
-            {contacts}
+            <span className="phone">{contacts}</span>
           </div>
         </div>
       </div>

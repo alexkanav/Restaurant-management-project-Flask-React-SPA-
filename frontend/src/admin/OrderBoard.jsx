@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
+import { config } from '../config';
 
 
 export default function OrderBoard({ setSelectedOrder, name }) {
@@ -10,7 +11,7 @@ export default function OrderBoard({ setSelectedOrder, name }) {
 
   const loadOrders = async () => {
     try {
-      const { data } = await sendToServer('admin/api/orders', null, 'GET');
+      const { data } = await sendToServer('/admin/api/orders', null, 'GET');
       setOrders(data.new_orders);
     } catch (error) {
       toast.error(error.message || "Зв'язок з сервером втрачено.");
@@ -20,7 +21,7 @@ export default function OrderBoard({ setSelectedOrder, name }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const { data } = await sendToServer('admin/api/orders/count', null, 'GET');
+        const { data } = await sendToServer('/admin/api/orders/count', null, 'GET');
         setStatus(true);
         if (orderCountRef.current !== data.order_number) {
           orderCountRef.current = data.order_number;
@@ -34,7 +35,7 @@ export default function OrderBoard({ setSelectedOrder, name }) {
           toast.error(error.message || "Зв'язок з сервером втрачено.");
         }
       }
-    }, 10000);
+    }, config.ORDER_POLL_INTERVAL);
 
     return () => clearInterval(interval);
   }, []);
@@ -69,19 +70,19 @@ export default function OrderBoard({ setSelectedOrder, name }) {
 
               <div className="order-card-description">
                 {Object.keys(order.order_details).map((code) => {
-                  const item = order.order_details[code];
+                  const { name, quantity, additions } = order.order_details[code];
                   return (
                     <div className="order-card-item" key={code}>
                       <div className="details">
-                        <span><strong>{item.name}</strong>: </span>
-                        <span><strong>{item.quantity}</strong></span>
+                        <span><strong>{name}</strong>: </span>
+                        <span><strong>{quantity}</strong></span>
                       </div>
 
-                      {item.additions && Object.keys(item.additions).length > 0 && (
+                      {additions && Object.keys(additions).length > 0 && (
                         <div className="order-additions">
                           <span>- додатки: (
-                           {Object.keys(item.additions).map((addition) => (
-                              <span key={addition}> {addition}, </span>
+                           {Object.keys(additions).map((extra) => (
+                              <span key={extra}> {extra}, </span>
                             ))}
                           )</span>
                         </div>
@@ -91,7 +92,6 @@ export default function OrderBoard({ setSelectedOrder, name }) {
                   );
                 })}
               </div>
-
               <div className="order-card-price">{order.final_cost} грн.</div>
             </div>
           </button>

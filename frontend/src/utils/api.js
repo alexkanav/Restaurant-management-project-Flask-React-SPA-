@@ -1,7 +1,7 @@
-import { baseApiUrl } from '../../config.json';
+import { config } from '../config';
 
 
-export async function sendToServer(path, data = null, method = "POST") {
+export async function sendToServer(path, data = null, method = 'POST') {
     const options = {
         method,
         headers: {},
@@ -13,7 +13,7 @@ export async function sendToServer(path, data = null, method = "POST") {
         options.body = JSON.stringify(data);
     }
 
-    let url = `${baseApiUrl}${path}`;
+    let url = `${config.API_URL}${path}`;
     if (method === "GET" && data) {
         url += `?${new URLSearchParams(data).toString()}`;
     }

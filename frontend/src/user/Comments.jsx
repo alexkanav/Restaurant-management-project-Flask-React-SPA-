@@ -11,7 +11,7 @@ export default function Comments() {
   useEffect(() => {
     const loadComments = async () => {
       try {
-        const { data } = await sendToServer('api/get-comments', null, 'GET');
+        const { data } = await sendToServer('/api/get-comments', null, 'GET');
         setData(data);
       } catch (error) {
         toast.error(error.message || "Не вдалося завантажити відгуки.");
