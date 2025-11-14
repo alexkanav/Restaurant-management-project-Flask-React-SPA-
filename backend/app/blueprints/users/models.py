@@ -1,9 +1,16 @@
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, DateTime, JSON
+from sqlalchemy import ForeignKey, func, DateTime, JSON
 
 from app.extensions import db, logger, safe_commit
 from app.utils import generate_coupon_code
+
+
+dish_extra_link = db.Table(
+    'dish_extra_link',
+    db.Column('dish_id', db.ForeignKey('dishes.code'), primary_key=True),
+    db.Column('extra_id', db.ForeignKey('dish_extras.id'), primary_key=True)
+)
 
 
 class User(db.Model):
@@ -15,16 +22,17 @@ class User(db.Model):
     orders: Mapped[list["Order"]] = relationship(back_populates="user")
     comments: Mapped[list["Comment"]] = relationship(back_populates="user")
     coupons: Mapped[list["Coupon"]] = relationship(back_populates="user")
+    like_rel: Mapped[list["DishLike"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     @property
     def sessions(self) -> int:
-        return len(self.orders)
+        return db.session.query(func.count(Order.id)).filter_by(user_id=self.id).scalar()
 
     @property
     def total_sum(self) -> int:
-        return sum(order.final_cost for order in self.orders)
+        return db.session.query(func.sum(Order.final_cost)).filter_by(user_id=self.id).scalar() or 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<User {self.id}>"
 
     @classmethod
@@ -46,7 +54,7 @@ class Category(db.Model):
 
     dishes: Mapped[list["Dish"]] = relationship(back_populates="category")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Category {self.name}>"
 
     @classmethod
@@ -88,11 +96,14 @@ class Dish(db.Model):
     views: Mapped[int] = mapped_column(default=0)
     likes: Mapped[int] = mapped_column(default=0)
 
-    extras: Mapped[list["DishExtra"]] = relationship(back_populates="dish")
     category: Mapped["Category"] = relationship(back_populates="dishes")
-    like_rel: Mapped[list["DishLike"]] = relationship(back_populates="dish")
+    like_rel: Mapped[list["DishLike"]] = relationship(back_populates="dish", cascade="all, delete-orphan")
+    extras: Mapped[list["DishExtra"]] = relationship(
+        secondary=dish_extra_link,
+        back_populates="dishes"
+    )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Dish {self.code} name={self.name_ua}>"
 
     @classmethod
@@ -135,8 +146,9 @@ class Dish(db.Model):
         if DishLike.query.filter_by(user_id=user_id, dish_code=dish_code).first():
             return False, "Ви вже оцінювали цей продукт"
 
+        new_like = DishLike(user_id=user_id, dish_code=dish_code)
         dish.likes += 1
-        dish.like_rel.append(DishLike(user_id=user_id, dish_code=dish_code))
+        db.session.add(new_like)
 
         if not safe_commit():
             logger.error("Failed to like dish")
@@ -151,8 +163,13 @@ class DishLike(db.Model):
 
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
     dish_code: Mapped[int] = mapped_column(ForeignKey('dishes.code'), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    user: Mapped["User"] = relationship(back_populates="like_rel")
     dish: Mapped["Dish"] = relationship(back_populates="like_rel")
+
+    def __repr__(self) -> str:
+        return f"<DishLike user_id={self.user_id} dish_code={self.dish_code}>"
 
 
 class DishExtra(db.Model):
@@ -162,11 +179,13 @@ class DishExtra(db.Model):
     name: Mapped[str] = mapped_column(db.String(20), unique=True)
     name_ua: Mapped[str] = mapped_column(db.String(20))
     price: Mapped[int] = mapped_column(default=0)
-    dish_code: Mapped[int] = mapped_column(ForeignKey('dishes.code'))
 
-    dish: Mapped["Dish"] = relationship(back_populates="extras")
+    dishes: Mapped[list["Dish"]] = relationship(
+        secondary=dish_extra_link,
+        back_populates="extras"
+    )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<DishExtra {self.name}>"
 
 
@@ -178,15 +197,15 @@ class Order(db.Model):
     completed_by: Mapped[int] = mapped_column(default=0)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     table_number: Mapped[int] = mapped_column(nullable=True)
-    original_cost: Mapped[float]
+    original_cost: Mapped[float] = mapped_column(db.Float)
     loyalty_pct: Mapped[int] = mapped_column(default=0)
     coupon_pct: Mapped[int] = mapped_column(default=0)
-    final_cost: Mapped[float]
-    order_details = mapped_column(JSON)
+    final_cost: Mapped[float] = mapped_column(db.Float)
+    order_details: Mapped[dict] = mapped_column(JSON)
 
     user: Mapped["User"] = relationship(back_populates="orders")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Order {self.id}>"
 
     def to_dict(self):
@@ -247,8 +266,8 @@ class Comment(db.Model):
 
     user: Mapped["User"] = relationship(back_populates="comments")
 
-    def __repr__(self):
-        return f"<Comment {self.id}"
+    def __repr__(self) -> str:
+        return f"<Comment {self.id}>"
 
     @classmethod
     def add_comment(cls, user_id: int, comm_name: str, comm_text: str) -> None:
@@ -295,6 +314,10 @@ class Coupon(db.Model):
             except ValueError:
                 logger.warning(f"Invalid date format for expires_at: {data['expires_at']}")
                 expires_at = None
+
+        if data.get('code') and cls.query.filter_by(code=data['code']).first():
+            logger.warning(f"Coupon code {data['code']} already exists.")
+            return 0
         new_coupon = cls(
             code=data.get('code') or generate_coupon_code(),
             discount_value=data.get('discount_value', 0),
