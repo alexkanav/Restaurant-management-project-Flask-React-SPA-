@@ -34,7 +34,7 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
   };
 
   return (
-    <div className="coupon-container">
+    <div className="dashboard-container">
       <div className="coupon-list">
         {coupons.length === 0 ? (
           <p className="no-coupons">Немає доступних купонів.</p>
@@ -71,7 +71,7 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
         )}
       </div>
 
-      <div className="coupon-form">
+      <div className="dashboard-form">
         <h3>Створити новий купон</h3>
         <form onSubmit={handleSubmit}>
           <label>

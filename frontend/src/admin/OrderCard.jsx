@@ -30,7 +30,7 @@ export default function OrderCard({ selectedOrder, setSelectedOrder }) {
                   <div className="order-card-item" key={code}>
                     <div className="details">
                       <span>{name}:</span>
-                      <span><strong>{quantity}</strong> x {price} грн.</span>
+                      <span className="no-wrap-text"><strong>{quantity}</strong> x {price} грн.</span>
                     </div>
 
                     {additions && Object.keys(additions).length > 0 && (
@@ -50,13 +50,13 @@ export default function OrderCard({ selectedOrder, setSelectedOrder }) {
             <div className="board-title">Розрахована вартість</div>
               <div className="details">
                 <span>Вартість без знижки:</span>
-                <span> {selectedOrder.original_cost} грн.</span>
+                <span className="no-wrap-text"> {selectedOrder.original_cost} грн.</span>
                 <span>Знижка за купоном:</span>
-                <span> {selectedOrder.coupon_pct} %</span>
+                <span className="no-wrap-text"> {selectedOrder.coupon_pct} %</span>
                 <span>Знижка постійного покупця:</span>
-                <span> {selectedOrder.loyalty_pct} %</span>
+                <span className="no-wrap-text"> {selectedOrder.loyalty_pct} %</span>
                 <span>До сплати:</span>
-                <span> {selectedOrder.final_cost} грн.</span>
+                <span className="no-wrap-text"> {selectedOrder.final_cost} грн.</span>
               </div>
               <div className="price">{selectedOrder.final_cost}<sub> грн.</sub></div>
               <div className="checkout--footer">

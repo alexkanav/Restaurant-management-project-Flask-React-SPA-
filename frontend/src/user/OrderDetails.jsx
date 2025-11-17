@@ -17,13 +17,13 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
 
   const { order } = useOrder();
 
+  const format = (num) => num.toFixed(2);
+
   const total = order.totalCost ?? 0;
   const couponDiscount = total * couponPercentage / 100;
   const loyaltyDiscount = total * loyaltyPercentage / 100;
   const totalDiscount = couponDiscount + loyaltyDiscount;
-  const payable = total - totalDiscount;
-
-  const format = (num) => num.toFixed(2);
+  const payable = format(total - totalDiscount);
 
   const dishKeys = Object.keys(order).filter(
     key => key !== 'table' && key !== 'totalCost'
@@ -65,7 +65,7 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
                   <div className="order-card-item" key={id}>
                     <div className="details">
                       <span>{name}:</span>
-                      <span><strong>{quantity}</strong> x {price} грн.</span>
+                      <span className="no-wrap-text"><strong>{quantity}</strong> x {price} грн.</span>
                     </div>
 
                     {additions && Object.keys(additions).length > 0 && (
@@ -115,13 +115,13 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
             <div className="board-title">Розрахована вартість</div>
             <div className="details">
               <span>Вартість без знижки:</span>
-              <span>{format(total)} грн.</span>
+              <span className="no-wrap-text">{format(total)} грн.</span>
               <span>Знижка за купоном:</span>
-              <span>{format(couponDiscount)} грн.</span>
+              <span className="no-wrap-text">{format(couponDiscount)} грн.</span>
               <span>Знижка постійного покупця:</span>
-              <span>{format(loyaltyDiscount)} грн.</span>
+              <span className="no-wrap-text">{format(loyaltyDiscount)} грн.</span>
               <span>До сплати:</span>
-              <span>{format(payable)} грн.</span>
+              <span className="no-wrap-text">{payable} грн.</span>
             </div>
 
             <div className="board-title">Оберіть, як вам зручно оплатити</div>
@@ -152,7 +152,7 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
                 </label>
               </div>
             </div>
-            <div className="price">{format(payable)}<sub> грн.</sub></div>
+            <div className="price">{payable}<sub> грн.</sub></div>
             <div className="checkout--footer">
               <button onClick={() => goTo(VIEWS.PRODUCT)}className="cancel-btn">Скасувати</button>
               <button

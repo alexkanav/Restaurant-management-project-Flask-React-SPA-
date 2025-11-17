@@ -1,4 +1,4 @@
-export default function InputType({ title, label, value, onChange, buttonFunc, buttonLabel }) {
+export default function InputType({ title, label, value, onChange, buttonFunc, buttonLabel, disabled }) {
 
   return (
     <div className="form-blc">
@@ -10,7 +10,7 @@ export default function InputType({ title, label, value, onChange, buttonFunc, b
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-      <button type="button" onClick={() => buttonFunc(value)}>
+      <button className="apply-btn" type="button" disabled={disabled} onClick={() => buttonFunc(value)}>
          {buttonLabel || 'Оновити'}
       </button>
    </div>

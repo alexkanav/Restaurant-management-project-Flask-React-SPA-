@@ -115,7 +115,7 @@ export default function DishCategoryEditor() {
   if (!categories || !dishes) return <Spinner />;
 
   return (
-    <>
+    <div className="dashboard-form">
       <SelectType
         title="Категорія"
         label="Category"
@@ -148,6 +148,7 @@ export default function DishCategoryEditor() {
               value={newCategoryName}
               onChange={setNewCategoryName}
               buttonFunc={changeCategory}
+              disabled={!newCategoryName || !newCategoryPosition}
             />
           </>
         ) : (
@@ -173,6 +174,7 @@ export default function DishCategoryEditor() {
             value={newDishCode}
             onChange={setNewDishCode}
             buttonFunc={addNewDish}
+            disabled={!newDishCode}
           />
         ) : (
           <>
@@ -187,7 +189,9 @@ export default function DishCategoryEditor() {
               alt={dishes[selectedDish]?.name_ua || 'Зображення страви'}
               style={{ width: '100%', marginTop: '10px' }}
             />
-            <ImageUploader setNewImage={setNewImage} />
+            <div className="image-uploader">
+              <ImageUploader setNewImage={setNewImage} />
+            </div>
 
             <Form
               key={selectedDish}
@@ -227,6 +231,6 @@ export default function DishCategoryEditor() {
           </>
         ))
       }
-    </>
+    </div>
   );
 }
