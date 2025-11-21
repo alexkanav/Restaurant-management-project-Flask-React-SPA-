@@ -91,7 +91,7 @@ def get_orders():
     try:
         uncompleted_orders = Order.query.filter_by(completed_by=0).all()
         new_orders = [order.to_dict() for order in uncompleted_orders]
-        return jsonify(new_orders=new_orders), 200
+        return jsonify(new_orders=new_orders, uncompleted_order_count=len(new_orders)), 200
 
     except Exception:
         logger.exception("Order update error")

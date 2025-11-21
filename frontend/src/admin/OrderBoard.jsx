@@ -7,12 +7,15 @@ import { config } from '../config';
 export default function OrderBoard({ setSelectedOrder, name }) {
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState(false);
+  const [uncompletedOrderCount, setUncompletedOrderCount] = useState("");
+
   const orderCountRef = useRef(0);
 
   const loadOrders = async () => {
     try {
       const { data } = await sendToServer('/admin/api/orders', null, 'GET');
       setOrders(data.new_orders);
+      setUncompletedOrderCount(data.uncompleted_order_count);
     } catch (error) {
       toast.error(error.message || "Зв'язок з сервером втрачено.");
     }
@@ -53,7 +56,7 @@ export default function OrderBoard({ setSelectedOrder, name }) {
         </span>
       </div>
       <div className="order-count">
-        Невиконаних замовлень: {orderCountRef.current}
+        Невиконаних замовлень: {uncompletedOrderCount}
       </div>
 
       {orders.map((order) => (
