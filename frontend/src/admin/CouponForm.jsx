@@ -33,6 +33,11 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
     setExpiresAt(new Date());
   };
 
+  const handleDelete = (id) => {
+    const yes = window.confirm(`Бажаєте видалити купон #${id}?`);
+    if (yes) deactivateCoupon(id);
+  };
+
   return (
     <div className="dashboard-container">
       <div className="coupon-list">
@@ -59,7 +64,7 @@ export default function CouponForm({ onSubmit, coupons = [], deactivateCoupon })
                   <td data-label="Дія">
                     <button
                       className="btn-delete"
-                      onClick={() => deactivateCoupon(coupon.id)}
+                      onClick={() => handleDelete(coupon.id)}
                     >
                       Видалити
                     </button>
