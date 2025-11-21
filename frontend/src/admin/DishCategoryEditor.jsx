@@ -204,16 +204,11 @@ export default function DishCategoryEditor() {
                   maxLength: 50,
                 },
                 {
+                  label: 'Опис страви:',
                   name: 'description',
                   type: 'textarea',
                   placeholder: dishes[selectedDish]?.description || '',
                   maxLength: 500,
-                },
-                {
-                  label: 'Ціна:',
-                  name: 'price',
-                  type: 'number',
-                  placeholder: dishes[selectedDish]?.price || '',
                 },
                 {
                   label: 'Фото:',
@@ -222,6 +217,13 @@ export default function DishCategoryEditor() {
                   placeholder:
                     newImage || dishes[selectedDish]?.image_link || '',
                   maxLength: 20,
+                },
+                {
+                  label: 'Ціна:',
+                  name: 'price',
+                  type: 'number',
+                  defaultValue: dishes[selectedDish]?.price || '',
+                  placeholder: dishes[selectedDish]?.price || '',
                 },
               ]}
               title={selectedDish}

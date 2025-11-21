@@ -90,7 +90,7 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
                 id="coupon"
                 type="text"
                 placeholder="Ваш купон ..."
-                className={`input_field ${couponError ? 'error' : ''}`}
+                className={`input-field ${couponError ? 'error' : ''}`}
                 value={couponAccepted ? `Задіяно: ${couponCode}` : couponCode}
                 minLength={10}
                 maxLength={10}
