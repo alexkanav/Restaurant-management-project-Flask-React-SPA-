@@ -11,19 +11,25 @@ export default function Form({
   note,
   loading,
 }) {
+  // Build default values from fields
+  const defaultValues = {};
+  fields.forEach(f => {
+    defaultValues[f.name] = f.defaultValue ?? "";
+  });
+
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm();
+  } = useForm({ defaultValues });
 
   const textareaRefs = useRef({});
 
   // Watch all field values
   const watchedValues = watch();
 
-  // Auto-resize textareas when their values change
+  // Auto-resize textareas
   useEffect(() => {
     fields.forEach((field) => {
       if (field.type === 'textarea') {
@@ -69,17 +75,13 @@ export default function Form({
                     {...fieldProps}
                     rows={1}
                     maxLength={maxLength}
-                    style={{
-                      overflow: 'hidden',
-                      resize: 'none',
-                    }}
+                    style={{ overflow: 'hidden', resize: 'none' }}
                     ref={(el) => {
                       textareaRefs.current[name] = el;
                       ref(el); // Connect to react-hook-form
                     }}
                   />
 
-                  {/* Character counter */}
                   <div className="char-counter">
                     Залишилось {maxLength - (watchedValues[name]?.length || 0)} символів
                   </div>
@@ -97,12 +99,10 @@ export default function Form({
                 />
               )}
 
-              {/* Client-side error */}
               {errors[name] && (
                 <p className="error">Це поле є обов'язковим</p>
               )}
 
-              {/* Server-side / backend error */}
               {fieldErrors?.[name] && (
                 <p className="error">{fieldErrors[name]}</p>
               )}
