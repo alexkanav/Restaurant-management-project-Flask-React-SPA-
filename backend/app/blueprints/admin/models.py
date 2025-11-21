@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, Enum, DateTime
+from sqlalchemy import ForeignKey, Enum, DateTime, Date
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.extensions import db, safe_commit, logger
@@ -98,7 +98,7 @@ class SalesSummary(db.Model):
     __tablename__ = 'sales_summary'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, unique=True)
+    date: Mapped[date] = mapped_column(Date, unique=True)
     total_sales: Mapped[float]
     orders: Mapped[int]
     returning_customers: Mapped[int]

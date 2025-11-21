@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, func, DateTime, JSON
+from sqlalchemy import ForeignKey, func, DateTime, Date, JSON
 
 from app.extensions import db, logger, safe_commit
 from app.utils import generate_coupon_code
@@ -288,7 +288,7 @@ class Coupon(db.Model):
     code: Mapped[str] = mapped_column(db.String(20), unique=True)
     discount_value: Mapped[int] = mapped_column(default=0)
     is_active: Mapped[bool] = mapped_column(default=True)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    expires_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
 
@@ -310,7 +310,7 @@ class Coupon(db.Model):
         expires_at = None
         if data.get('expires_at'):
             try:
-                expires_at = datetime.strptime(data['expires_at'], "%d-%m-%Y")
+                expires_at = datetime.strptime(data['expires_at'], "%d-%m-%Y").date()
             except ValueError:
                 logger.warning(f"Invalid date format for expires_at: {data['expires_at']}")
                 expires_at = None
@@ -318,6 +318,7 @@ class Coupon(db.Model):
         if data.get('code') and cls.query.filter_by(code=data['code']).first():
             logger.warning(f"Coupon code {data['code']} already exists.")
             return 0
+
         new_coupon = cls(
             code=data.get('code') or generate_coupon_code(),
             discount_value=data.get('discount_value', 0),
@@ -342,7 +343,9 @@ class Coupon(db.Model):
             logger.warning(f"Coupon {self.code} is inactive.")
             return False, 0
 
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        today = datetime.utcnow().date()
+
+        if self.expires_at and today > self.expires_at:
             logger.warning(f"Coupon {self.code} has expired.")
             return False, 0
 

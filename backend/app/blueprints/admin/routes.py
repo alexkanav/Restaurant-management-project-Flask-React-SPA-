@@ -346,6 +346,8 @@ def manage_coupons():
 
     if request.method == 'GET':
         try:
+            today = datetime.utcnow().date()
+
             # Fetch only active and not expired coupons
             active_coupons = (
                 Coupon.query
@@ -353,7 +355,7 @@ def manage_coupons():
                     Coupon.is_active.is_(True),
                     or_(
                         Coupon.expires_at.is_(None),
-                        Coupon.expires_at >= datetime.utcnow()
+                        Coupon.expires_at >= today
                     )
                 )
                 .all()
