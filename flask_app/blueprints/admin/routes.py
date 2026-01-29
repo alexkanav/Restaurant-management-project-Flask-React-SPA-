@@ -1,12 +1,12 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, g
-from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from pydantic import ValidationError
 import logging
 
 from flask_app.extensions import cache
-from flask_app.security import role_required
+from flask_app.security import role_required, require_active_staff
 from utils.images import process_image_upload
 from domain.core.constants import MENU_CACHE_KEY
 from domain.core.errors import NotFoundError, ConflictError, DomainError, DomainValidationError
@@ -20,8 +20,9 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
 
 @admin_bp.route('/me', methods=['GET'])
-@role_required(UserRole.staff)
-def get_me(user_id: int):
+@jwt_required()
+def get_me():
+    user_id = require_active_staff(g.db)
     return jsonify(id=user_id, role=UserRole.staff.value), 200
 
 
