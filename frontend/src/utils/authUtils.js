@@ -6,14 +6,15 @@ const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const handleError = (error, setFieldErrors) => {
   if (error?.status === 401) {
-    toast.error(error.message || "Не вірний Логін або Пароль!");
+    toast.error(error.detail || "Не вірний Логін або Пароль!");
   } else {
-    toast.error(error.message || "Помилка з'єднання з сервером.");
+    toast.error(error.detail || "Помилка з'єднання з сервером.");
   }
   setFieldErrors({});
 };
 
-export async function login(credentials, setUserName, setFieldErrors) {
+
+export async function login(credentials, setFieldErrors) {
   const newErrors = {};
 
   if (!validateEmail(credentials.email)) {
@@ -22,15 +23,29 @@ export async function login(credentials, setUserName, setFieldErrors) {
 
   if (Object.keys(newErrors).length > 0) {
     setFieldErrors(newErrors);
-    return;
+    return null;
   }
 
   try {
-    const { data } = await sendToServer('/admin/api/auth/login', credentials, 'POST');
+    const { data } = await sendToServer('/api/admin/auth/login', credentials, 'POST');
     toast.success('Ви увійшли успішно!');
-    setUserName(data.username);
+    return data.user_id
   } catch (error) {
     handleError(error, setFieldErrors);
+    return null;
+  }
+}
+
+export async function logout() {
+  try {
+    const { data } = await sendToServer('/api/admin/auth/logout', null, 'POST');
+    toast.success(data.message || 'Ви вийшли з системи.');
+  } catch (error) {
+    if (error?.status === 401) {
+      toast.error('Ви не авторизовані!');
+    } else {
+      toast.error("Зв'язок з сервером втрачено.");
+    }
   }
 }
 
@@ -41,80 +56,52 @@ export async function register(credentials, setFieldErrors) {
     newErrors.email = 'Некоректна електронна пошта';
   }
 
-  if (credentials.password !== credentials.confirmPassword) {
+  if (credentials.password && credentials.password !== credentials.confirmPassword) {
     newErrors.confirmPassword = 'Паролі не співпадають';
   }
 
   if (Object.keys(newErrors).length > 0) {
     setFieldErrors(newErrors);
-    return;
+    return null;
   }
 
   try {
     const { confirmPassword, ...dataToSend } = credentials;
-    const { data } = await sendToServer('/admin/api/auth/register', dataToSend, 'POST');
+    const { data } = await sendToServer('/api/admin/auth/register', dataToSend, 'POST');
     toast.success(data.message || 'Успішна реєстрація!');
-    return true;
+    return data.user_id
   } catch (error) {
     handleError(error, setFieldErrors);
+    return null;
   }
 }
 
-export async function checkAuth(setUserName) {
-  try {
-    const { data } = await sendToServer('/admin/api/auth/session', null, 'GET');
-    setUserName(data.username);
-  } catch (error) {
-    if (error?.status === 401) {
-      setUserName('');
-    } else {
-      toast.error(error.message || "Не вдалося перевірити авторизацію.");
-    }
-  }
-}
+export async function checkAuth(role) {
+  const endpoint =
+    role === "client" ? "/api/users/me" : "/api/admin/me";
 
-export async function logout(setUserName) {
-  try {
-    const { data } = await sendToServer('/admin/api/auth/logout', null, 'GET');
-    toast.success(data.message || 'Ви вийшли з системи.');
-    setUserName('');
-  } catch (error) {
-    if (error?.status === 401) {
-      toast.error('Ви не авторизовані!');
-    } else {
-      toast.error("Зв'язок з сервером втрачено.");
-    }
-  }
-}
-
-export async function fetchOrCreateUser() {
-  try {
-    const userId = await userExists();
-    return userId
-  } catch (error) {
-    toast.error("Не вдалося отримати дані користувача.");
-    throw error;
-  }
-}
-
-export async function userExists() {
-  try {
-    const { data } = await sendToServer('/api/users/me', null, 'GET');
+ try {
+    const { data } = await sendToServer(endpoint, null, "GET");
     return data.id;
   } catch (error) {
-    if (error?.status === 401) {
-      return await createUser();
-    } else {
-      throw error;
+    if (error?.status === 401 && role === "client") {
+      const createdUserId = await createUser();
+      return createdUserId;
     }
+
+    toast.error(
+      error?.detail || "Не вдалося перевірити авторизацію."
+    );
+    return null;
   }
 }
 
 export async function createUser() {
   try {
-    const { data } = await sendToServer('/api/users', null, 'POST');
+    const { data }  = await sendToServer('/api/users', null, 'POST');
     return data.user_id;
   } catch (error) {
-    toast.error(error.message || "Помилка реєстрації нового користувача.");
+    toast.error(error.detail || "Помилка реєстрації нового користувача.");
+    return null;
   }
 }

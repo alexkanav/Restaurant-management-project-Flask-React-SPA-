@@ -21,11 +21,11 @@ export default function DishCategoryEditor() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const { data } = await sendToServer('/admin/api/menu', null, 'GET');
+        const { data } = await sendToServer('/api/admin/menu', null, 'GET');
 
         if (data?.categories && data?.dishes) {
           setCategories(data.categories);
-          setCategoryIdMap(data.categoryIdMap);
+          setCategoryIdMap(data.category_id_map);
           setDishes(data.dishes);
         } else {
           throw new Error('Menu data is incomplete');
@@ -38,9 +38,9 @@ export default function DishCategoryEditor() {
     fetchMenu();
   }, [reloadTrigger]);
 
-  const updateCategories = async (categories) => {
+  const updateCategories = async (category_names) => {
     try {
-      const { data } = await sendToServer('/admin/api/category/update', { categories }, 'PATCH');
+      const { data } = await sendToServer('/api/admin/categories', { category_names }, 'PATCH');
       toast.success(data.message || 'Категорії оновлено');
       setReloadTrigger((prev) => prev + 1);
     } catch (error) {
@@ -50,7 +50,7 @@ export default function DishCategoryEditor() {
 
   const sendNewDish = async (dish) => {
     try {
-      const { data } = await sendToServer('/admin/api/dish/update', dish, 'POST');
+      const { data } = await sendToServer('/api/admin/dishes', dish, 'POST');
       toast.success(data.message || 'Страву оновлено');
       setReloadTrigger((prev) => prev + 1);
     } catch (error) {
@@ -100,7 +100,7 @@ export default function DishCategoryEditor() {
 
     const newDish = {
       code: selectedDish,
-      name_ua: formData.dishname,
+      name: formData.dishname,
       category_id: categoryIdMap[selectedCategoryName],
       description: formData.description,
       price,
@@ -186,7 +186,7 @@ export default function DishCategoryEditor() {
                   : `${config.UPLOADED_IMAGES_FOLDER}${dishes[selectedDish]?.image_link}`
               }
               loading="lazy"
-              alt={dishes[selectedDish]?.name_ua || 'Зображення страви'}
+              alt={dishes[selectedDish]?.name || 'Зображення страви'}
               style={{ width: '100%', marginTop: '10px' }}
             />
             <div className="image-uploader">

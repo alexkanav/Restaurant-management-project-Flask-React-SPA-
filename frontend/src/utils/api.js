@@ -28,7 +28,7 @@ export async function sendToServer(path, data = null, method = 'POST') {
         // Return response status and response data
         if (!response.ok) {
             // Attach message from response if available
-            const errorMessage = responseData?.message || `HTTP error! Status: ${response.status}`;
+            const errorMessage = responseData?.detail || `HTTP error! Status: ${response.status}`;
             const error = new Error(errorMessage);
             error.status = response.status;
             error.responseData = responseData;

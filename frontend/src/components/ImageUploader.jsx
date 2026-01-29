@@ -20,18 +20,20 @@ export default function ImageUploader({ setNewImage }) {
       const formData = new FormData();
       formData.append('image', image);
 
-      const response = await fetch(`${config.API_URL}/admin/api/upload`, {
+      const response = await fetch(`${config.API_URL}/api/admin/images`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+      const errorData = await response.json().catch(() => null);
+      const message = errorData?.detail || response.statusText || "Upload failed";
+        throw new Error(message);
       }
 
       const result = await response.json();
-      setNewImage(result.url);
+      setNewImage(result.filename);
     } catch (error) {
       toast.error(`Помилка завантаження: ${error.message}`);
     } finally {

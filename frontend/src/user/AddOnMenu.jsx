@@ -11,7 +11,7 @@ export default function AddOnMenu(props) {
     dishName,
   } = props;
 
-  const { order, updateAddition } = useOrder();
+  const { orderDetails, updateAddition } = useOrder();
 
   const {
     containerRef,
@@ -21,7 +21,7 @@ export default function AddOnMenu(props) {
   } = useDragScroll();
 
   const selectAddition = (dishId, addition, price) => {
-    if (dishId in order) {
+    if (dishId in orderDetails) {
       updateAddition(dishId, addition, price);
     } else {
       toast.error(`Спершу додайте страву: ${dishName}`);
@@ -65,7 +65,6 @@ export default function AddOnMenu(props) {
               <div className="card-price-add">{addOnMenu[addon]} грн.</div>
             </button>
           );
-
         })}
       </div>
     </div>

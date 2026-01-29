@@ -4,6 +4,7 @@ export const VIEWS = {
   TABLE: 'TableSelection',
   SUMMARY: 'CreatedOrder',
   DASHBOARD: 'Dashboard',
-  LOGIN: 'Login',
-  REGISTER: 'Register',
+  MANAGEMENT: 'Management',
+  STATISTICS: 'Statistics',
+  NOTIFICATION: 'Notification'
 };

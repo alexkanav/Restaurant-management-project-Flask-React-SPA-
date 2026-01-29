@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 
 const OrderContext = createContext();
@@ -6,12 +6,12 @@ const OrderContext = createContext();
 export const useOrder = () => useContext(OrderContext);
 
 export const OrderProvider = ({ children }) => {
-  const [order, setOrder] = useState({});
+  const [orderDetails, setOrderDetails] = useState({});
 
 
    // Add item in the order
   const addItem = (item, itemData) => {
-    setOrder(prev => ({
+    setOrderDetails(prev => ({
       ...prev,
       [item]: itemData
     }));
@@ -19,7 +19,7 @@ export const OrderProvider = ({ children }) => {
 
   // Update item in the order
   const updateItem = (dishId, itemData) => {
-      setOrder(prev => ({
+      setOrderDetails(prev => ({
         ...prev,
         [dishId]: {
           ...prev[dishId],
@@ -30,7 +30,7 @@ export const OrderProvider = ({ children }) => {
 
   // Update addition
   const updateAddition = (dishId, addition, price) => {
-    setOrder(prev => {
+    setOrderDetails(prev => {
       const existingDish = prev[dishId] || {};
       const existingAdditions = existingDish.additions || {};
 
@@ -49,7 +49,7 @@ export const OrderProvider = ({ children }) => {
 
   // Calculate the total price of the order
   const calculateTotal = () => {
-    return Object.values(order).reduce((sum, item) => {
+    return Object.values(orderDetails).reduce((sum, item) => {
       const quantity = Number(item.quantity || 0);
       const price = Number(item.price || 0);
       const additions = item.additions || {};
@@ -61,22 +61,22 @@ export const OrderProvider = ({ children }) => {
   // Filter out items with quantity <= 0
   const cleanedOrder = () => {
     const validOrder = Object.fromEntries(
-      Object.entries(order).filter(
+      Object.entries(orderDetails).filter(
         ([, value]) => Number(value.quantity) > 0
       )
     );
-    if (Object.keys(order).length !== Object.keys(validOrder).length) {
-      setOrder(validOrder)
+    if (Object.keys(orderDetails).length !== Object.keys(validOrder).length) {
+      setOrderDetails(validOrder)
     }
     return validOrder;
   };
 
-  const clearOrder = () => setOrder({});
+  const clearOrder = () => setOrderDetails({});
 
   return (
     <OrderContext.Provider
       value={{
-        order,
+        orderDetails,
         addItem,
         updateItem,
         updateAddition,

@@ -4,11 +4,11 @@ import { VIEWS } from '../constants/views';
 import { config } from '../config';
 
 
-export default function TableSelection({ goTo }) {
+export default function TableSelection({ goTo, setTableNumber }) {
   const { addItem } = useOrder();
 
   const addTableNumber = (num) => {
-    addItem('table', num);
+    setTableNumber(num);
     goTo(VIEWS.SUMMARY);
   };
 

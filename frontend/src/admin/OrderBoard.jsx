@@ -7,15 +7,15 @@ import { config } from '../config';
 export default function OrderBoard({ setSelectedOrder, name }) {
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState(false);
-  const [uncompletedOrderCount, setUncompletedOrderCount] = useState("");
+  const [ordersCount, setOrdersCount] = useState("");
 
-  const orderCountRef = useRef(0);
+  const ordersCountRef = useRef(0);
 
   const loadOrders = async () => {
     try {
-      const { data } = await sendToServer('/admin/api/orders', null, 'GET');
-      setOrders(data.new_orders);
-      setUncompletedOrderCount(data.uncompleted_order_count);
+      const { data } = await sendToServer('/api/admin/orders', { only_uncompleted: true}, 'GET');
+      setOrders(data.orders);
+      setOrdersCount(data.orders_count);
     } catch (error) {
       toast.error(error.message || "Зв'язок з сервером втрачено.");
     }
@@ -24,10 +24,10 @@ export default function OrderBoard({ setSelectedOrder, name }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const { data } = await sendToServer('/admin/api/orders/count', null, 'GET');
+        const { data } = await sendToServer('/api/admin/orders/count', null, 'GET');
         setStatus(true);
-        if (orderCountRef.current !== data.order_number) {
-          orderCountRef.current = data.order_number;
+        if (ordersCountRef.current !== data.count) {
+          ordersCountRef.current = data.count;
           loadOrders();
         }
       } catch (error) {
@@ -45,18 +45,8 @@ export default function OrderBoard({ setSelectedOrder, name }) {
 
   return (
     <>
-      <div className='order-note'>
-        <span>Користувач: {name}</span>
-        <span>
-          {status ? (
-            <div>Замовлення актуальні</div>
-          ) : (
-            <div className="error">Помилка оновлення</div>
-          )}
-        </span>
-      </div>
       <div className="order-count">
-        Невиконаних замовлень: {uncompletedOrderCount}
+        Невиконаних замовлень: {ordersCount}
       </div>
 
       {orders.map((order) => (
@@ -90,7 +80,6 @@ export default function OrderBoard({ setSelectedOrder, name }) {
                           )</span>
                         </div>
                       )}
-
                     </div>
                   );
                 })}

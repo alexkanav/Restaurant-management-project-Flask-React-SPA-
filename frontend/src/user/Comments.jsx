@@ -11,8 +11,8 @@ export default function Comments() {
   useEffect(() => {
     const loadComments = async () => {
       try {
-        const { data } = await sendToServer('/api/get-comments', null, 'GET');
-        setData(data);
+        const { data } = await sendToServer('/api/users/comments', null, 'GET');
+        setData(data.comments);
       } catch (error) {
         toast.error(error.message || "Не вдалося завантажити відгуки.");
       } finally {
@@ -36,9 +36,9 @@ export default function Comments() {
               <div className="card-box">
                 <div className="card-cont cont_full">
                   <div className="card-comm">
-                    <strong>{item.name}</strong>: <span className="card-note">{item.time}</span>
+                    <strong>{item.user_name}</strong>: <span className="card-note">{item.comment_date}</span>
                   </div>
-                  <div className="card-descr">{item.message}</div>
+                  <div className="card-descr">{item.comment_text}</div>
                 </div>
               </div>
             </div>

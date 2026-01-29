@@ -8,32 +8,29 @@ import gPay from '../../static/images/google-pay.png';
 import aPay from '../../static/images/apple-pay.png';
 
 
-export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, userId, loading }) {
+export default function OrderDetails({ totalCost, loyaltyPercentage,  goTo, postOrder, loading, tableNumber }) {
   const [couponPercentage, setCouponPercentage] = useState(0);
   const [couponCode, setCouponCode] = useState("");
   const [couponAccepted, setCouponAccepted] = useState(false);
   const [couponError, setCouponError] = useState(false);
   const [isCashPayment, setIsCashPayment] = useState(null);
 
-  const { order } = useOrder();
+  const { orderDetails } = useOrder();
 
   const format = (num) => num.toFixed(2);
 
-  const total = order.totalCost ?? 0;
+  const total = totalCost ?? 0;
   const couponDiscount = total * couponPercentage / 100;
   const loyaltyDiscount = total * loyaltyPercentage / 100;
   const totalDiscount = couponDiscount + loyaltyDiscount;
-  const payable = format(total - totalDiscount);
+  const payable = parseFloat((total - totalDiscount).toFixed(2));
 
-  const dishKeys = Object.keys(order).filter(
-    key => key !== 'table' && key !== 'totalCost'
-  );
 
   const handleApplyCoupon = async (e) => {
     e.preventDefault(); // prevent page refresh right away
 
     try {
-      const { data } = await sendToServer(`/api/coupon/${couponCode}`, null, 'POST');
+      const { data } = await sendToServer(`/api/users/coupon/${couponCode}`, null, 'POST');
 
       if (data?.discount !== undefined) {
         setCouponPercentage(data.discount);
@@ -56,11 +53,11 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
       <div className='master-container'>
         <div className="content-block">
           <div className="order-card-body">
-            <div className="order-table-num">Ваш стіл  {order.table}</div>
+            <div className="order-table-num">Ваш стіл  {tableNumber}</div>
 
             <div className="summary-card-description">
-              {dishKeys.map((id) => {
-                const { name, quantity, price, additions } = order[id];
+              {Object.keys(orderDetails).map((id) => {
+                const { name, quantity, price, additions } = orderDetails[id];
                 return (
                   <div className="order-card-item" key={id}>
                     <div className="details">
@@ -82,7 +79,7 @@ export default function OrderDetails({ loyaltyPercentage,  goTo, postOrder, user
               })}
             </div>
 
-            <div className="order-card-price">Сума: {order.totalCost} грн.</div>
+            <div className="order-card-price">Сума: {total} грн.</div>
 
             <div className="board-title">Маєте купон на знижку?</div>
             <form className="coupon" onSubmit={handleApplyCoupon}>

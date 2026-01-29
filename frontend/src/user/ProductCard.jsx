@@ -12,14 +12,14 @@ import { config } from '../config';
 
 export default function ProductCard(props) {
   const { code, name, description, price, image_link, likes, isPop, isRec, extras} = props;
-  const { order, updateItem } = useOrder();
+  const { orderDetails, updateItem } = useOrder();
   const [likeDish, setLikeDish] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const currentDish = order[code];
+  const currentDish = orderDetails[code];
 
   const handleProductQuantity = (event) => {
-    const quantity = event.target.value;
+    const quantity = parseInt(event.target.value);
     updateItem(code, { name, quantity, price, additions: {} });
   };
 
@@ -29,7 +29,7 @@ export default function ProductCard(props) {
 
   const addLikeToDish = async () => {
     try {
-      const { data }  = await sendToServer(`/api/dishes/${code}/like`, null, 'PATCH');
+      const { data }  = await sendToServer(`/api/users/dishes/${code}/like`, null, 'POST');
       setLikeDish(true);
       toast.success(data.message || "Додано вподобання");
     } catch (error) {

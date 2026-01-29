@@ -4,7 +4,7 @@ import { sendToServer } from '../utils/api';
 import { Spinner } from '../components';
 
 
-export default function AdminNotification() {
+export default function AdminNotification({ unreadNotificationsCount, setUnreadNotificationsCount }) {
   const [notifications, setNotifications] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,22 +18,25 @@ export default function AdminNotification() {
 
   const markNotif = async (id) => {
     try {
-      const { data } = await sendToServer(`/admin/api/notifications/${id}/mark_as_read`, null, 'PATCH');
+      const { data } = await sendToServer(`/api/admin/notifications/${id}`, null, 'PATCH');
       toast.success(data.message || "Сповіщення помічене як прочитане.");
+      setUnreadNotificationsCount(prev => Math.max(0, prev - 1));
+
     } catch (error) {
       toast.error(error.message || "Не вдалося оновити сповіщення.");
     }
   };
 
-  const handleClose = (id) => {
-    markNotif(id);
+  const handleClose = async (id) => {
+    await markNotif(id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
     setExpandedId(null);
   };
 
   useEffect(() => {
     const fetchNotif = async () => {
       try {
-        const { data } = await sendToServer('/admin/api/notification/unread', null, 'GET');
+        const { data } = await sendToServer('/api/admin/notifications', { only_unread: true }, 'GET');
         setNotifications(data);
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -69,12 +72,12 @@ export default function AdminNotification() {
                   <div className='notif-header'>
                     <strong>{n.title}</strong>
                     <small className='notif-date'>
-                      #{n.id}/ {new Date(n.created_at).toLocaleString("uk-UA")}
+                      #{n.id}/ {n.created_at}
                     </small>
                   </div>
-                  {n.staff_id && (
+                  {n.created_staff_id && (
                     <div className='notif-id'>
-                      <em>Створено: #{n.staff_id}</em>
+                      <em>Створено: #{n.created_staff_id}</em>
                     </div>
                   )}
                   <p className='notif-message'>

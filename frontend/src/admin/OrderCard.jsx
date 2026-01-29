@@ -5,8 +5,8 @@ import { sendToServer } from '../utils/api';
 export default function OrderCard({ selectedOrder, setSelectedOrder }) {
   const finalizeOrder = async () => {
     try {
-      const { data } = await sendToServer(`/admin/api/orders/${selectedOrder.id}/complete`, null, 'POST');
-      toast.success(data.message || "Замовлення виконано");
+      const { data } = await sendToServer(`/api/admin/orders/${selectedOrder.id}/complete`, null, 'PATCH');
+      toast.success(data.message || `Замовлення: ${selectedOrder.id} виконано`);
       setSelectedOrder(null);
     } catch (error) {
       toast.error(error.message || "Замовлення скасовано");

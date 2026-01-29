@@ -18,6 +18,9 @@ export default function DishSelectionPage() {
   const [currentComponent, setCurrentComponent] = useState(VIEWS.PRODUCT);
   const { addItem, cleanedOrder, calculateTotal } = useOrder();
 
+  const [tableNumber, setTableNumber] = useState(0);
+  const [totalCost, setTotalCost] = useState(0);
+
   const goTo = (view) => setCurrentComponent(view);
 
   const completeOrder = () => {
@@ -27,20 +30,20 @@ export default function DishSelectionPage() {
       return;
     }
 
-    const totalCost = calculateTotal();
-    addItem("totalCost", totalCost);
+    setTotalCost(calculateTotal());
+
     goTo(VIEWS.TABLE);
   };
 
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const { data } = await sendToServer('/api/menu', null, 'GET');
+        const { data } = await sendToServer('/api/users/menu', null, 'GET');
 
-        if (data.menu && data.menu.categories && data.menu.dishes) {
-          setMenuCategories(data.menu.categories.map((item) => Object.keys(item)[0]));
-          setCategoryItems(data.menu.categories.map((item) => Object.values(item)[0]));
-          setAllMenuItems(data.menu.dishes);
+        if (data.categories && data.dishes) {
+          setMenuCategories(data.categories.map((item) => Object.keys(item)[0]));
+          setCategoryItems(data.categories.map((item) => Object.values(item)[0]));
+          setAllMenuItems(data.dishes);
         } else {
           throw new Error("Menu data is incomplete");
         }
@@ -70,8 +73,8 @@ export default function DishSelectionPage() {
         </div>
       </>
     ),
-    [VIEWS.TABLE]: <TableSelection goTo={goTo} />,
-    [VIEWS.SUMMARY]: <OrderSummary goTo={goTo} />,
+    [VIEWS.TABLE]: <TableSelection goTo={goTo} setTableNumber={setTableNumber} />,
+    [VIEWS.SUMMARY]: <OrderSummary goTo={goTo} totalCost={totalCost} tableNumber={tableNumber} />,
   };
 
   const navLinks = (currentComponent === VIEWS.PRODUCT)

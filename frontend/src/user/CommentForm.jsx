@@ -13,7 +13,7 @@ export default function CommentForm() {
   const handleSubmit = async (formData) => {
     setLoading(true);
     try {
-      const { data } = await sendToServer('/api/send-comment', formData, 'POST');
+      const { data } = await sendToServer('/api/users/comments', formData, 'POST');
       toast.success(data.message || 'Дякуємо за відгук!');
       setTimeout(() => navigate('/'), 3000);
     } catch (error) {
@@ -36,8 +36,8 @@ export default function CommentForm() {
 
       <Form
         fields={[
-          { name: 'username', type: 'text', placeholder: "Ім'я", required: true, maxLength: 20},
-          { name: 'textarea', type: 'textarea', placeholder: "Ваш відгук ...", required: true, maxLength: 500 },
+          { name: 'user_name', type: 'text', placeholder: "Ім'я", required: true, maxLength: 20},
+          { name: 'comment_text', type: 'textarea', placeholder: "Ваш відгук ...", required: true, maxLength: 500 },
         ]}
         title="Відгуки"
         buttonText="Надіслати"

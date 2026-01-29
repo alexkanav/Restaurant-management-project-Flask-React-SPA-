@@ -2,29 +2,31 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Chart, Spinner } from '../components';
 import { toast } from 'react-toastify';
 import { sendToServer } from '../utils/api';
+import { config } from '../config';
 
 
 export default function Statistics() {
   const [salesData, setSalesData] = useState(null);
   const [dishesData, setDishesData] = useState(null);
+  const startDate = config.start_date
+  const endDate = config.end_date
 
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const { data } = await sendToServer('/admin/api/statistics', null, 'GET');
-
-        if (data.salesSummary && data.dishesStats) {
+        const { data } = await sendToServer('/api/admin/statistics', { startDate, endDate }, 'GET');
+        if (data.sales_summary && data.dish_order_stats) {
           setSalesData({
-            date: data.salesSummary.date,
-            totalSales: data.salesSummary.totalSales,
-            orders: data.salesSummary.orders,
-            returningCustomers: data.salesSummary.returningCustomers,
-            avgCheckSize: data.salesSummary.avgCheckSize,
+            dates: data.sales_summary.dates,
+            totalSales: data.sales_summary.total_sales,
+            orders: data.sales_summary.orders,
+            returningCustomers: data.sales_summary.returning_customers,
+            avgCheckSize: data.sales_summary.avg_check_sizes,
           });
 
           setDishesData({
-            dishes: data.dishesStats.dishes,
-            orders: data.dishesStats.orders,
+            dishes: data.dish_order_stats.dishes,
+            orders: data.dish_order_stats.orders,
           });
         } else {
           throw new Error("Statistics data is incomplete");
@@ -37,11 +39,6 @@ export default function Statistics() {
 
     fetchStatistics();
   }, []);
-
-  const pieColors = [
-    '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
-    '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC'
-  ];
 
   const salesSummaryChart = useMemo(() => {
     if (!salesData) return null;
@@ -100,7 +97,7 @@ export default function Statistics() {
       {
         label: 'Популярні страви',
         data: dishesData.orders,
-        backgroundColor: pieColors,
+        backgroundColor: config.PIE_COLORS,
       }
     ];
   }, [dishesData]);
@@ -112,12 +109,12 @@ export default function Statistics() {
     <div className="dashboard-content">
       <div className="dashboard-block">
         <div className="chart-title">Денний дохід та середній чек</div>
-        <Chart chartType="bar" labels={salesData.date} datasets={salesSummaryChart} />
+        <Chart chartType="bar" labels={salesData.dates} datasets={salesSummaryChart} />
       </div>
 
       <div className="dashboard-block">
         <div className="chart-title">Частота відвідування клієнтів</div>
-        <Chart chartType="line" labels={salesData.date} datasets={visitFrequencyChart} />
+        <Chart chartType="line" labels={salesData.dates} datasets={visitFrequencyChart} />
       </div>
 
       <div className="chart-pie">

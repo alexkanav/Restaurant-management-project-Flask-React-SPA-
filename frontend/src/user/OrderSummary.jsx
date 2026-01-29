@@ -5,14 +5,14 @@ import { sendToServer } from '../utils/api';
 import  OrderDetails from './OrderDetails';
 import { useOrder } from '../context/OrderContext';
 import { VIEWS } from '../constants/views';
-import { fetchOrCreateUser } from '../utils/authUtils';
+import { checkAuth } from '../utils/authUtils';
 import { getUserDiscount } from '../utils/userUtils';
 
 
-export default function OrderSummary({ goTo }) {
+export default function OrderSummary({ goTo, totalCost, tableNumber }) {
   const navigate = useNavigate();
   const [orderId, setOrderId] = useState(null);
-  const { order } = useOrder();
+  const { orderDetails } = useOrder();
   const [userId, setUserId] = useState(null);
   const [loyaltyPercentage, setLoyaltyPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function OrderSummary({ goTo }) {
   useEffect(() => {
     const fetchUserIdAndLoyaltyPercentage = async () => {
       try {
-        const userId = await fetchOrCreateUser();
+        const userId = await checkAuth("client");
 
         if (!userId) {
          setError("Ви не зареєстровані.");
@@ -49,7 +49,7 @@ export default function OrderSummary({ goTo }) {
       return;
     }
 
-    if (!order) {
+    if (!orderDetails) {
       toast.error("Немає замовлення для відправки.");
       return;
     }
@@ -57,7 +57,18 @@ export default function OrderSummary({ goTo }) {
      setLoading(true);
 
     try {
-      const { data } = await sendToServer('/api/order', {...order, loyaltyPercentage, couponPercentage, payable}, 'POST');
+      const { data } = await sendToServer(
+        '/api/users/order',
+        {
+          "order_details": {...orderDetails},
+          "original_cost": totalCost,
+          "loyalty_pct": loyaltyPercentage,
+          "coupon_pct": couponPercentage,
+          "final_cost": payable,
+          "table": tableNumber
+        },
+        'POST'
+      );
       setOrderId(data.id);
       setLeadTime(data.leadTime)
       toast.success(data.message || "Замовлення успішно відправлено!");
@@ -103,11 +114,12 @@ export default function OrderSummary({ goTo }) {
         </>
       ) : (
         <OrderDetails
-         loyaltyPercentage={loyaltyPercentage}
-         goTo={goTo}
-         postOrder={postOrder}
-         userId={userId}
-         loading={loading}
+           totalCost={totalCost}
+           loyaltyPercentage={loyaltyPercentage}
+           goTo={goTo}
+           postOrder={postOrder}
+           loading={loading}
+           tableNumber={tableNumber}
         />
       )}
     </div>
