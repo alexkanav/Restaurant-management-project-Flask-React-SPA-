@@ -42,3 +42,7 @@ class OrderOperationResultSchema(BaseModel):
 class OrderResponseSchema(BaseModel):
     orders: list[OrderSchema]
     orders_count: int
+
+
+class OrderCountResponseSchema(BaseModel):
+    count: int

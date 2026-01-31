@@ -1,4 +1,13 @@
-from pydantic import BaseModel
+from datetime import date
+from pydantic import BaseModel, Field
+
+
+class StatisticsQuerySchema(BaseModel):
+    start_date: date = Field(..., alias="startDate")
+    end_date: date = Field(..., alias="endDate")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class SalesSummarySchema(BaseModel):
@@ -17,5 +26,3 @@ class DishOrderStatsSchema(BaseModel):
 class StatisticsResponseSchema(BaseModel):
     sales_summary: SalesSummarySchema
     dish_order_stats: DishOrderStatsSchema
-
-
